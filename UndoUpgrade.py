@@ -4,8 +4,14 @@ import time
 from os import listdir
 from os.path import isfile, join
 import subprocess
+import configparser
 
-log_file = "/var/log/pacman.log"
+config = configparser.ConfigParser()
+config.read("downgrader.conf")
+
+
+log_file = config["DEFAULT"]["LogFile"]
+cache_dir = config["DEFAULT"]["CacheDir"]
 
 regex = re.compile("(?<=(\[)).*?(?=-\d\d\d\d\])")
 
@@ -24,7 +30,7 @@ class pacman_list:
         self.pkgs = []
         self.NameRegex = re.compile("(?<=(upgraded ))[a-zA-z\d\-\_\.]+?(?= \()")
         self.VerRegex = re.compile("(?<=\()([\_a-zA-Z\d\.\-\+\:]+) -> ([\_a-zA-Z\d\.\-\+\:]+)(?=\))")   
-        self.cache_dir_list = [f for f in listdir("/var/cache/pacman/pkg/") if isfile(join("/var/cache/pacman/pkg/", f))]
+        self.cache_dir_list = [f for f in listdir(cache_dir) if isfile(join(cache_dir, f))]
     
     # Add to list
     def add(self, package):
@@ -57,6 +63,10 @@ class pacman_list:
         for pkg in self.pkgs:
             print(f"{pkg.pkg_name} upgraded on {pkg._date} from {pkg.old_ver} to {pkg.new_ver}")
     
+    def printFiles(self):
+        for pkg in self.pkgs:
+            print(f"{pkg.pkg_name} {pkg.pkg_files}")
+
     def downgrade(self):
         command = ["pacman", "-U"]
         for pkg in self.pkgs:
@@ -116,9 +126,9 @@ class pacman_package:
         regexp_old = "^"+self.pkg_name+"-"+self.old_ver
         for f in self.pkglist:
             if re.search(regexp_new, f):
-                self.pkg_files[1] = " /var/cache/pacman/pkg/"+f
+                self.pkg_files[1] = cache_dir+('/' if cache_dir[len(cache_dir)-1] != '/' else '')+f
             elif re.search(regexp_old, f):
-                self.pkg_files[0] = " /var/cache/pacman/pkg/"+f
+                self.pkg_files[0] = cache_dir+('/' if cache_dir[len(cache_dir)-1] != '/' else '')+f
 
 f = open(log_file, "r")
 
@@ -130,5 +140,6 @@ for line in f:
 
 l.sort()
 l.updatePackages()
-l.printPackages()
-l.downgrade()
+l.printFiles()
+#l.printPackages()
+#l.downgrade()
