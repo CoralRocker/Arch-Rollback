@@ -36,6 +36,7 @@ class pacman_list:
         self.VerRegex = re.compile("(?<=\()([\_a-zA-Z\d\.\-\+\:]+) -> ([\_a-zA-Z\d\.\-\+\:]+)(?=\))")   
         self.cache_dir_list = [f for f in listdir(cache_dir) if isfile(join(cache_dir, f))]
         self.regex = re.compile("(?<=(\[)).*?(?=-\d\d\d\d\])")
+        self.selected_packages = []
 
     # Add to list
     def add(self, package):
@@ -125,7 +126,8 @@ class pacman_list:
             else:
                 indeces.append(int(num))
         indeces = list(dict.fromkeys(indeces))
-        print(indeces)
+        self.selected_packages = indeces
+
 '''
 Class holding package information
 Allows for easy sorting and retrieving of packages for downgrading
