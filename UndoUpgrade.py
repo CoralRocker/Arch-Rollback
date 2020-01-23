@@ -27,7 +27,7 @@ l = pacman_list()
 for line in f:
     if re.search("upgraded", line):
         l.cadd(line)
-
+'''
 l.sort()
 l.updatePackages()
 print("Packages Found and Sorted.")
@@ -36,4 +36,9 @@ if print_if == "y":
     l.printFiles()
 print_if = input("Downgrade only specific packages? (y/N)")[0].lower()
 if print_if == "y":
-    l.printFiles(True)    
+    l.printFiles(True)
+'''    
+
+while 1:
+    string = input("In: ")
+    l.getPackages(string)

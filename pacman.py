@@ -112,6 +112,20 @@ class pacman_list:
             command += " " + pkg.pkg_files[1]
         print(command)
 
+    def getPackages(self, inputString):
+        # 1-2 3 556
+        pkg = list(filter(None, re.split(',| ', inputString)))
+        regex = re.compile("(\d+)-(\d+)")
+        indeces = []
+        for num in pkg:
+            if re.search("-", num):
+                nums = [int(regex.search(num).group(1)), int(regex.search(num).group(2))]
+                for i in range(nums[0], nums[1]+1):
+                    indeces.append(i)
+            else:
+                indeces.append(int(num))
+        indeces = list(dict.fromkeys(indeces))
+        print(indeces)
 '''
 Class holding package information
 Allows for easy sorting and retrieving of packages for downgrading
