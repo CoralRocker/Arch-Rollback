@@ -37,6 +37,7 @@ class pacman_list:
         self.cache_dir_list = [f for f in listdir(cache_dir) if isfile(join(cache_dir, f))]
         self.regex = re.compile("(?<=(\[)).*?(?=-\d\d\d\d\])")
         self.selected_packages = []
+        self.sorted = False
 
     # Add to list
     def add(self, package):
@@ -60,6 +61,7 @@ class pacman_list:
                 break
             pkg_date = pkg._date
         self.pkgs = good_list
+        self.sorted = True
 
     # Call on sorted packages to update their own information
     def updatePackages(self):
@@ -81,7 +83,7 @@ class pacman_list:
         else:
             space_len = len(str(len(self.pkgs)))
             for index, pkg in enumerate(self.pkgs):
-                out = "("+(" "*(space_len-len(str(index))))+str(index)+") " # Gets correctly formatted index
+                out = "("+(" "*(space_len-len(str(index))))+str(index+1)+") " # Gets correctly formatted index
                 out += pkg.pkg_name + " " + str(pkg.old_ver) + " -> " + str(pkg.new_ver) # Adds package name and versions
                 print(out)
 
@@ -115,6 +117,9 @@ class pacman_list:
 
     def getPackages(self, inputString):
         # 1-2 3 556
+        if not self.sorted:
+            self.sort()
+            self.sorted = True
         pkg = list(filter(None, re.split(',| ', inputString)))
         regex = re.compile("(\d+)-(\d+)")
         indeces = []
@@ -126,7 +131,11 @@ class pacman_list:
             else:
                 indeces.append(int(num))
         indeces = list(dict.fromkeys(indeces))
-        self.selected_packages = indeces
+        self.selected_packages = [self.pkgs[i-1] for i in indeces]
+
+    def printSelected(self):
+        for pkg in self.selected_packages:
+            print(f"{pkg.pkg_name} {pkg.old_ver} -> {pkg.new_ver}")
 
 '''
 Class holding package information

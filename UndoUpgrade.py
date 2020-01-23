@@ -7,6 +7,12 @@ import subprocess
 import configparser
 from pacman import pacman_list
 
+def repeatingInput(prompt):
+    while True:
+        out = input(prompt)
+        if len(out) != 0:
+            return out
+
 log_file = "/var/log/pacman.log"
 cache_dir = "/var/cache/pacman/pkg"
 time_difference = 15
@@ -31,13 +37,14 @@ for line in f:
 l.sort()
 l.updatePackages()
 print("Packages Found and Sorted.")
-print_if = input("Print all packages? (y/N)")[0].lower()
+print_if = repeatingInput("Print all packages? (y/N)")[0].lower()
 if print_if == "y":
     l.printFiles()
-print_if = input("Downgrade only specific packages? (y/N)")[0].lower()
+print_if = repeatingInput("Downgrade only specific packages? (y/N)")[0].lower()
 if print_if == "y":
     l.printFiles(True)
     print("Separate with commas or spaces. May use ranges (Num1-Num2 inclusive) or singular numbers.")
-    print("EX: 1-23 34, 37-43"
-    string = input("Enter number of packages to downgrade. ")
-    l.getPackages(string)
+    print("EX: 1-23 34, 37-43")
+    instr = repeatingInput("Enter requested numbers: ") 
+    l.getPackages(instr)
+    l.printSelected()
