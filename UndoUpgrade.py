@@ -7,11 +7,11 @@ import subprocess
 import configparser
 from pacman import pacman_list
 
-def repeatingInput(prompt):
+def repeatingInput(prompt, default=False):
     while True:
         out = input(prompt)
-        if len(out) != 0:
-            return out
+        if len(out) != 0 or default!=False:
+            return (out if len(out) != 0 else default)
 
 log_file = "/var/log/pacman.log"
 cache_dir = "/var/cache/pacman/pkg"
@@ -37,10 +37,10 @@ for line in f:
 l.sort()
 l.updatePackages()
 print("Packages Found and Sorted.")
-print_if = repeatingInput("Print all packages? (y/N)")[0].lower()
+print_if = repeatingInput("Print all packages? (y/N)", 'n')[0].lower()
 if print_if == "y":
     l.printFiles()
-print_if = repeatingInput("Downgrade only specific packages? (y/N)")[0].lower()
+print_if = repeatingInput("Downgrade only specific packages? (y/N)", 'n')[0].lower()
 if print_if == "y":
     l.printFiles(True)
     print("Separate with commas or spaces. May use ranges (Num1-Num2 inclusive) or singular numbers.")

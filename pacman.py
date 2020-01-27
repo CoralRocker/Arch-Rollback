@@ -4,6 +4,7 @@ import time
 from os import listdir
 from os.path import isfile, join
 import configparser
+from colorama import Fore, Back, Style
 
 log_file = "/var/log/pacman.log"
 cache_dir = "/var/cache/pacman/pkg"
@@ -74,17 +75,18 @@ class pacman_list:
     # Prints some debugging information about packages
     def printPackages(self):
         for pkg in self.pkgs:
-            print(f"{pkg.pkg_name} upgraded on {pkg._date} from {pkg.old_ver} to {pkg.new_ver}")
+            print(f"{pkg.pkg_name} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
     
     def printFiles(self, numbered=False):
         if not numbered:
             for pkg in self.pkgs:
-                print(f"{pkg.pkg_name} {pkg.pkg_files}")
+                # print(f"{pkg.pkg_name} {pkg.pkg_files}")
+                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
         else:
             space_len = len(str(len(self.pkgs)))
             for index, pkg in enumerate(self.pkgs):
-                out = "("+(" "*(space_len-len(str(index))))+str(index+1)+") " # Gets correctly formatted index
-                out += pkg.pkg_name + " " + str(pkg.old_ver) + " -> " + str(pkg.new_ver) # Adds package name and versions
+                out = Fore.GREEN + "("+(" "*(space_len-len(str(index))))+str(index+1)+") " + Fore.RESET # Gets correctly formatted index
+                out += pkg.pkg_name + " " + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
                 print(out)
 
     def downgrade(self):
@@ -126,6 +128,7 @@ class pacman_list:
         for num in pkg:
             if re.search("-", num):
                 nums = [int(regex.search(num).group(1)), int(regex.search(num).group(2))]
+                nums.sort()
                 for i in range(nums[0], nums[1]+1):
                     indeces.append(i)
             else:
