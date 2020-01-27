@@ -37,14 +37,18 @@ for line in f:
 l.sort()
 l.updatePackages()
 print("Packages Found and Sorted.")
-print_if = repeatingInput("Print all packages? (y/N)", 'n')[0].lower()
+print_if = repeatingInput("Print all packages? (y/N) ", 'n')[0].lower()
 if print_if == "y":
     l.printFiles()
-print_if = repeatingInput("Downgrade only specific packages? (y/N)", 'n')[0].lower()
+print_if = repeatingInput("Downgrade only specific packages? (y/N) ", 'n')[0].lower()
 if print_if == "y":
     l.printFiles(True)
     print("Separate with commas or spaces. May use ranges (Num1-Num2 inclusive) or singular numbers.")
     print("EX: 1-23 34, 37-43")
     instr = repeatingInput("Enter requested numbers: ") 
     l.getPackages(instr)
-    l.printSelected()
+    instr = repeatingInput("Print command? (Y/n) ", 'y')[0].lower()
+    if instr == 'y':
+        l.printCommand(True, True)
+
+

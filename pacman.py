@@ -62,6 +62,7 @@ class pacman_list:
                 break
             pkg_date = pkg._date
         self.pkgs = good_list
+        self.pkgs.sort(key=pacman_package.pkg_name.fget)
         self.sorted = True
 
     # Call on sorted packages to update their own information
@@ -111,9 +112,10 @@ class pacman_list:
    # def getCommand(self):
 
     # Prints out full command to run, perhaps with sudo
-    def printCommand(self, sudo=False):
+    def printCommand(self, sudo=False, selected=False):
+        print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET, end='')
         command = ("sudo " if sudo else "") + "pacman -U"
-        for pkg in self.pkgs:
+        for pkg in (self.selected_packages if selected else self.pkgs):
             command += " " + pkg.pkg_files[1]
         print(command)
 
@@ -156,15 +158,16 @@ class pacman_package:
         self.line = line
         tmp = regex.search(line).group(0)
         self._date = datetime.datetime.strptime(tmp, "%Y-%m-%dT%X")
-    
+        self.pkg_name = ""
+
     # Returns a pretty version of the date
     def date(self):
         return self._date.strftime("%c")
 
     # Gets passed a regex from the wrapper class (pacman_list), uses it to get name
     def getName(self, regex):
-        self.pkg_name = regex.search(self.line).group(0)
-    
+        self.pkg_name = regex.search(self.line).group(0)    
+
     # Gets passed a regex from the wrapper class, uses it to get old and new version
     def getVer(self, regex):
         self.old_ver = regex.search(self.line).group(1)
