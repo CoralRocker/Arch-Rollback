@@ -1,3 +1,4 @@
+from colorama import Fore
 import re
 import datetime
 import time
@@ -36,7 +37,7 @@ l = pacman_list()
 Intro Text
 '''
 
-instr = repeatingInput(f"Get packages by upgrade? Alternative is by time. {'(Y/n)' if get_by_upgrade else '(y/N)'} ", 'y' if get_by_upgrade else 'n')
+instr = repeatingInput(f"Get packages by upgrade? Alternative is by time. {Fore.GREEN}{'(Y/n)' if get_by_upgrade else '(y/N)'}{Fore.RESET} ", 'y' if get_by_upgrade else 'n')
 if instr == 'y':
     get_by_upgrade = True
 else:
@@ -74,12 +75,12 @@ User options and input
 '''
 
 # Display Packages
-print_if = repeatingInput("Print all packages? (y/N) ", 'n')[0].lower()
+print_if = repeatingInput(f"Print all packages? {Fore.GREEN}(y/N){Fore.RESET} ", 'n')[0].lower()
 if print_if == "y":
     l.printFiles()
 
 # Specific package downgrading
-print_if = repeatingInput("Downgrade only specific packages? (y/N) ", 'n')[0].lower()
+print_if = repeatingInput(f"Downgrade only specific packages? {Fore.GREEN}(y/N){Fore.RESET} ", 'n')[0].lower()
 if print_if == "y":
     l.printFiles(True)
     print("Separate with commas or spaces. May use ranges (Num1-Num2 inclusive) or singular numbers.")
@@ -89,7 +90,7 @@ if print_if == "y":
     
 
 # Print command
-instr = repeatingInput("Print command? (Y/n) ", 'y')[0].lower()
+instr = repeatingInput(f"Print command? {Fore.GREEN}(Y/n){Fore.RESET} ", 'y')[0].lower()
 if instr == 'y':
     l.printCommand(True)
 
