@@ -5,12 +5,13 @@ from os import listdir
 from os.path import isfile, join
 import configparser
 from colorama import Fore, Back, Style
+import subprocess
 
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
 
-log_file = config["DEFAULT"]["LogFile"] | "/var/log/pacman.log"
-cache_dir = config["DEFAULT"]["CacheDir"] | "/var/cache/pacman/pkg"
+log_file = config["DEFAULT"]["LogFile"] or "/var/log/pacman.log"
+cache_dir = config["DEFAULT"]["CacheDir"] or "/var/cache/pacman/pkg"
 time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
 
 '''
@@ -84,25 +85,8 @@ class pacman_list:
                 out += pkg.pkg_name + " " + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
                 print(out)
 
-    def downgrade(self):
-        command = ["pacman", "-U"]
-        for pkg in self.pkgs:
-            command.append(pkg.pkg_files[1])
-        process = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-        while True:
-            output = process.stdout.readline()
-            print(output.strip())
-            # Do something else
-            return_code = process.poll()
-            '''
-            if return_code is not None:
-                print('RETURN CODE', return_code)
-                # Process has finished, read rest of the output 
-                for output in process.stdout.readlines():
-                    print(output.strip())
-                break
-            '''
-    
+        
+
    # def getCommand(self):
 
     # Prints out full command to run, perhaps with sudo
@@ -112,6 +96,13 @@ class pacman_list:
         for pkg in (self.selected_packages if self.selected else self.pkgs):
             command += " " + pkg.pkg_files[0]
         print(command)
+
+    def downgrade(self):
+        cmd = ['sudo pacman -U']
+        for pkg in (self.selected_packages if self.selected else self.pkgs):
+            cmd.append(pkg.pkg_files[0])
+        cmd = ' '.join(cmd)
+        subprocess.call(cmd, shell=True)
 
     def getPackages(self, inputString):
         # 1-2 3 556

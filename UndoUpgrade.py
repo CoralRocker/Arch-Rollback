@@ -1,10 +1,5 @@
 from colorama import Fore
 import re
-import datetime
-import time
-from os import listdir
-from os.path import isfile, join
-import subprocess
 import configparser
 from pacman import pacman_list
 
@@ -20,8 +15,8 @@ def repeatingInput(prompt, default=False):
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
 
-log_file = config["DEFAULT"]["LogFile"] | "/var/log/pacman.log"
-cache_dir = config["DEFAULT"]["CacheDir"] | "/var/cache/pacman/pkg"
+log_file = config["DEFAULT"]["LogFile"] or "/var/log/pacman.log"
+cache_dir = config["DEFAULT"]["CacheDir"] or "/var/cache/pacman/pkg"
 time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
 get_by_upgrade = (True if config["DEFAULT"]["GetByUpgrade"].lower() == "true" else False) | False
 
@@ -33,12 +28,14 @@ l = pacman_list()
 Intro Text
 '''
 
-instr = repeatingInput(f"Get packages by upgrade? Alternative is by time. {Fore.GREEN}{'(Y/n)' if get_by_upgrade else '(y/N)'}{Fore.RESET} ", 'y' if get_by_upgrade else 'n')
+instr = repeatingInput(f"Get packages by upgrade? Alternative is by time. {Fore.GREEN}{'(Y/n)' if get_by_upgrade else '(y/N)'}{Fore.RESET} ", 'y' if get_by_upgrade else 'n')[0].lower()
 if instr == 'y':
     get_by_upgrade = True
 else:
     get_by_upgrade = False
-
+    instr = repeatingInput(f"Current time allowed between upgraded packages is {time_difference} minutes. Change? {Fore.GREEN}(y/N){Fore.RESET} ", 'n')[0].lower()
+    if instr == 'y':
+        time_difference = int(repeatingInput("Enter time: ",str(time_difference)))
 
 '''
 Get information from log file in one of two ways
@@ -91,5 +88,7 @@ if instr == 'y':
     l.printCommand(True)
 
 # TODO Make program downgrade by itself...
-
+instr = repeatingInput(f"Downgrade? (Y/n) ", 'y')[0].lower()
+if instr == 'y':
+    l.downgrade()
 
