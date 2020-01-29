@@ -62,7 +62,7 @@ class pacman_list:
                 break
             pkg_date = pkg._date
         self.pkgs = good_list
-        self.pkgs.sort(key=pacman_package.pkg_name.fget)
+        self.pkgs.sort(key=lambda x: x.pkg_name)
         self.sorted = True
 
     # Call on sorted packages to update their own information
