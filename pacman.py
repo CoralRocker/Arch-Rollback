@@ -6,19 +6,12 @@ from os.path import isfile, join
 import configparser
 from colorama import Fore, Back, Style
 
-log_file = "/var/log/pacman.log"
-cache_dir = "/var/cache/pacman/pkg"
-time_difference = 15
-
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
 
-
-log_file = config["DEFAULT"]["LogFile"]
-cache_dir = config["DEFAULT"]["CacheDir"]
-time_difference = int(config["DEFAULT"]["AllowableDifference"])
-
-
+log_file = config["DEFAULT"]["LogFile"] | "/var/log/pacman.log"
+cache_dir = config["DEFAULT"]["CacheDir"] | "/var/cache/pacman/pkg"
+time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
 
 '''
 Wrapper class for pacman_package class. 
@@ -184,7 +177,8 @@ class pacman_package:
     def setPkgList(self, full_list):
         regexp = "^"+self.pkg_name+"-"
         self.pkglist = [f for f in full_list if re.search(regexp, f)]
-
+    
+    # Using Cache Directory, get full names of both current and previous file
     def getPackageFiles(self):
         self.pkg_files = ["", ""]
         regexp_new = "^"+self.pkg_name+"-"+self.new_ver

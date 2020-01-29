@@ -17,16 +17,12 @@ def repeatingInput(prompt, default=False):
             return (out if len(out) != 0 else default)
 
 # Config file parsing
-log_file = "/var/log/pacman.log"
-cache_dir = "/var/cache/pacman/pkg"
-time_difference = 15
-
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
 
-log_file = config["DEFAULT"]["LogFile"]
-cache_dir = config["DEFAULT"]["CacheDir"]
-time_difference = int(config["DEFAULT"]["AllowableDifference"])
+log_file = config["DEFAULT"]["LogFile"] | "/var/log/pacman.log"
+cache_dir = config["DEFAULT"]["CacheDir"] | "/var/cache/pacman/pkg"
+time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
 get_by_upgrade = (True if config["DEFAULT"]["GetByUpgrade"].lower() == "true" else False) | False
 
 f = open(log_file, "r")
