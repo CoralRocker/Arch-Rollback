@@ -29,10 +29,32 @@ time_difference = int(config["DEFAULT"]["AllowableDifference"])
 f = open(log_file, "r")
 
 l = pacman_list()
+get_by_upgrade = (True if config["DEFAULT"]["GetByUpgrade"].lower() == "true" else False) | False
 
-for line in f:
-    if re.search("upgraded", line):
-        l.cadd(line)
+'''
+Intro Text
+'''
+
+instr = repeatingInput(f"Get packages by upgrade? Alternative is by time. {'(Y/n)' if get_by_upgrade else '(y/N)'} ", 'y' if get_by_upgrade else 'n')
+if instr == 'y':
+    get_by_upgrade = True
+else:
+    get_by_upgrade = False
+
+if get_by_upgrade:
+    tmprgx = re.compile("\[PACMAN\] Running \'pacman \-S")
+    upgraded = False
+    for line in reversed(list(f)):
+        if re.search("upgraded", line):
+            upgraded = True
+            l.cadd(line)
+        if upgraded and tmprgx.search(line):
+                break
+    
+else:
+    for line in f:
+        if re.search("upgraded", line):
+            l.cadd(line)
 
 l.sort()
 l.updatePackages()

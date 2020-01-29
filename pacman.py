@@ -62,7 +62,6 @@ class pacman_list:
                 break
             pkg_date = pkg._date
         self.pkgs = good_list
-        self.pkgs.sort(key=lambda x: x.pkg_name)
         self.sorted = True
 
     # Call on sorted packages to update their own information
@@ -72,6 +71,7 @@ class pacman_list:
             pkg.getVer(self.VerRegex)
             pkg.setPkgList(self.cache_dir_list)
             pkg.getPackageFiles()
+        self.pkgs.sort(key=lambda x: x.pkg_name)
 
     # Prints some debugging information about packages
     def printPackages(self):
@@ -159,6 +159,11 @@ class pacman_package:
         tmp = regex.search(line).group(0)
         self._date = datetime.datetime.strptime(tmp, "%Y-%m-%dT%X")
         self.pkg_name = ""
+
+    def __str__(self):
+        return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
+    def __repr__(self):
+        return self.__str__()
 
     # Returns a pretty version of the date
     def date(self):
