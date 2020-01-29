@@ -39,6 +39,7 @@ class pacman_list:
         self.regex = re.compile("(?<=(\[)).*?(?=-\d\d\d\d\])")
         self.selected_packages = []
         self.sorted = False
+        self.selected = False
 
     # Add to list
     def add(self, package):
@@ -112,11 +113,11 @@ class pacman_list:
    # def getCommand(self):
 
     # Prints out full command to run, perhaps with sudo
-    def printCommand(self, sudo=False, selected=False):
+    def printCommand(self, sudo=False):
         print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET, end='')
         command = ("sudo " if sudo else "") + "pacman -U"
-        for pkg in (self.selected_packages if selected else self.pkgs):
-            command += " " + pkg.pkg_files[1]
+        for pkg in (self.selected_packages if self.selected else self.pkgs):
+            command += " " + pkg.pkg_files[0]
         print(command)
 
     def getPackages(self, inputString):
@@ -137,6 +138,7 @@ class pacman_list:
                 indeces.append(int(num))
         indeces = list(dict.fromkeys(indeces))
         self.selected_packages = [self.pkgs[i-1] for i in indeces]
+        self.selected = True
 
     def printSelected(self):
         for pkg in self.selected_packages:
