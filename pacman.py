@@ -93,10 +93,6 @@ class pacman_list:
                 out += pkg.pkg_name + space + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
                 print(out)
 
-        
-
-   # def getCommand(self):
-
     # Prints out full command to run, perhaps with sudo
     def printCommand(self, sudo=False):
         print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET, end='')
@@ -132,6 +128,14 @@ class pacman_list:
     def printSelected(self):
         for pkg in self.selected_packages:
             print(f"{pkg.pkg_name} {pkg.old_ver} -> {pkg.new_ver}")
+
+    def getCachePackages(self):
+        cached_files = [f for f in listdir(cache_dir) if isfile(join(cache_dir, f))]
+        farr = []
+        pcmn_installed = subprocess.run(['/bin/pacman', '-Q'], stdout=subprocess.PIPE).stdout.decode('utf-8').split('\n')
+        print(pcmn_installed)
+
+
 
 '''
 Class holding package information
