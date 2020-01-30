@@ -130,11 +130,17 @@ class pacman_list:
             print(f"{pkg.pkg_name} {pkg.old_ver} -> {pkg.new_ver}")
 
     def getCachePackages(self):
-        cached_files = [f for f in listdir(cache_dir) if isfile(join(cache_dir, f))]
-        farr = []
-        pcmn_installed = subprocess.run(['/bin/pacman', '-Q'], stdout=subprocess.PIPE).stdout.decode('utf-8').split('\n')
-        print(pcmn_installed)
-
+        pcmn_installed = list(filter(None, subprocess.run(['/bin/pacman', '-Q'], stdout=subprocess.PIPE).stdout.decode('utf-8').split('\n')))
+        self.cache_installed_packages = []
+        nameRegex = re.compile("([\d\w\_\-\+]+) ([\_a-zA-Z\d\.\-\+\:]+)")
+        for pkg in pcmn_installed:
+            m_obj = nameRegex.search(pkg)
+            self.cache_installed_packages.append(pacman_package(name=m_obj.group(1), ver=m_obj.group(2)))
+        
+        for pkg in self.cache_installed_packages:
+            pkg.setPkgList(self.cache_dir_list)
+        self.cache_installed_packages = [pkg for pkg in self.cache_installed_packages if len(pkg.pkglist)>0]
+                        
 
 
 '''
@@ -149,11 +155,14 @@ class pacman_package:
     "regex" is a global regex object which retrieves the date
     _date is important for sorting objects
     '''
-    def __init__(self, line, regex):
-        self.line = line
-        tmp = regex.search(line).group(0)
-        self._date = datetime.datetime.strptime(tmp, "%Y-%m-%dT%X")
-        self.pkg_name = ""
+    def __init__(self, line=False, regex=False, name=False, ver=False):
+        if line and regex:
+            self.line = line
+            tmp = regex.search(line).group(0)
+            self._date = datetime.datetime.strptime(tmp, "%Y-%m-%dT%X")
+        elif name and ver:
+            self.pkg_name = name
+            self.new_ver = ver
 
     def __str__(self):
         return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
@@ -175,7 +184,8 @@ class pacman_package:
 
     # Get list of cached packages for program
     def setPkgList(self, full_list):
-        regexp = "^"+self.pkg_name+"-"
+        regexp = "^"+re.escape(self.pkg_name)+"-"
+        print(self.pkg_name)
         self.pkglist = [f for f in full_list if re.search(regexp, f)]
     
     # Using Cache Directory, get full names of both current and previous file
