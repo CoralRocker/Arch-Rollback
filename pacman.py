@@ -114,9 +114,6 @@ class pacman_list:
 
     def getPackages(self, inputString):
         # 1-2 3 556
-        if not self.sorted:
-            self.sort()
-            self.sorted = True
         pkg = list(filter(None, re.split(',| ', inputString)))
         regex = re.compile("(\d+)-(\d+)")
         indeces = []
