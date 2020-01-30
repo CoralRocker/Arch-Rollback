@@ -5,20 +5,14 @@ from os import listdir
 from os.path import isfile, join
 import configparser
 from colorama import Fore, Back, Style
-
-log_file = "/var/log/pacman.log"
-cache_dir = "/var/cache/pacman/pkg"
-time_difference = 15
+import subprocess
 
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
 
-
-log_file = config["DEFAULT"]["LogFile"]
-cache_dir = config["DEFAULT"]["CacheDir"]
-time_difference = int(config["DEFAULT"]["AllowableDifference"])
-
-
+log_file = config["DEFAULT"]["LogFile"] or "/var/log/pacman.log"
+cache_dir = config["DEFAULT"]["CacheDir"] or "/var/cache/pacman/pkg"
+time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
 
 '''
 Wrapper class for pacman_package class. 
@@ -80,36 +74,27 @@ class pacman_list:
             print(f"{pkg.pkg_name} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
     
     def printFiles(self, numbered=False):
+        max_len = 0
+        for pkg in self.pkgs:
+            if len(pkg.pkg_name) > max_len:
+                max_len = len(pkg.pkg_name)
+        max_len += 1
         if not numbered:
             for pkg in self.pkgs:
                 # print(f"{pkg.pkg_name} {pkg.pkg_files}")
-                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
+                space = ' ' * (max_len - len(pkg.pkg_name))
+                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET + space}", end='')
+                print(f"upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
         else:
             space_len = len(str(len(self.pkgs)))
             for index, pkg in enumerate(self.pkgs):
                 out = Fore.GREEN + "("+(" "*(space_len-len(str(index))))+str(index+1)+") " + Fore.RESET # Gets correctly formatted index
-                out += pkg.pkg_name + " " + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
+                space = ' ' * (max_len - len(pkg.pkg_name))
+                out += pkg.pkg_name + space + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
                 print(out)
 
-    def downgrade(self):
-        command = ["pacman", "-U"]
-        for pkg in self.pkgs:
-            command.append(pkg.pkg_files[1])
-        process = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-        while True:
-            output = process.stdout.readline()
-            print(output.strip())
-            # Do something else
-            return_code = process.poll()
-            '''
-            if return_code is not None:
-                print('RETURN CODE', return_code)
-                # Process has finished, read rest of the output 
-                for output in process.stdout.readlines():
-                    print(output.strip())
-                break
-            '''
-    
+        
+
    # def getCommand(self):
 
     # Prints out full command to run, perhaps with sudo
@@ -120,11 +105,15 @@ class pacman_list:
             command += " " + pkg.pkg_files[0]
         print(command)
 
+    def downgrade(self):
+        cmd = ['sudo pacman -U']
+        for pkg in (self.selected_packages if self.selected else self.pkgs):
+            cmd.append(pkg.pkg_files[0])
+        cmd = ' '.join(cmd)
+        subprocess.call(cmd, shell=True)
+
     def getPackages(self, inputString):
         # 1-2 3 556
-        if not self.sorted:
-            self.sort()
-            self.sorted = True
         pkg = list(filter(None, re.split(',| ', inputString)))
         regex = re.compile("(\d+)-(\d+)")
         indeces = []
@@ -184,7 +173,8 @@ class pacman_package:
     def setPkgList(self, full_list):
         regexp = "^"+self.pkg_name+"-"
         self.pkglist = [f for f in full_list if re.search(regexp, f)]
-
+    
+    # Using Cache Directory, get full names of both current and previous file
     def getPackageFiles(self):
         self.pkg_files = ["", ""]
         regexp_new = "^"+self.pkg_name+"-"+self.new_ver
