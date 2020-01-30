@@ -6,6 +6,7 @@ from os.path import isfile, join
 import configparser
 from colorama import Fore, Back, Style
 import subprocess
+import string
 
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
@@ -136,12 +137,29 @@ class pacman_list:
         for pkg in pcmn_installed:
             m_obj = nameRegex.search(pkg)
             self.cache_installed_packages.append(pacman_package(name=m_obj.group(1), ver=m_obj.group(2)))
-        
+
         for pkg in self.cache_installed_packages:
             pkg.setPkgList(self.cache_dir_list)
         self.cache_installed_packages = [pkg for pkg in self.cache_installed_packages if len(pkg.pkglist)>0]
-                        
+        self.cached = True
 
+    def printCachePackages(self):
+        if not self.cached:
+           self.getCachePackages()
+        self.cache_installed_packages.sort(key=lambda x: x.pkg_name)
+        alpha_packages = dict()
+        index = 0
+        for pkg in self.cache_installed_packages:
+            try:
+                alpha_packages[pkg.pkg_name[0].lower()].append(pkg)
+            except KeyError:
+                alpha_packages[pkg.pkg_name[0].lower()] = []
+                alpha_packages[pkg.pkg_name[0].lower()].append(pkg)
+        for key in alpha_packages:
+            print(f"KEY: {key}")
+            for pkg in alpha_packages[key]:
+                print(f"{Fore.RED}{Back.RED}::{Fore.RESET}{Back.RESET}{pkg.pkg_name}", end='')
+            print()
 
 '''
 Class holding package information
@@ -163,7 +181,7 @@ class pacman_package:
         elif name and ver:
             self.pkg_name = name
             self.new_ver = ver
-
+            self.old_ver = '0'
     def __str__(self):
         return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
     def __repr__(self):
@@ -185,7 +203,6 @@ class pacman_package:
     # Get list of cached packages for program
     def setPkgList(self, full_list):
         regexp = "^"+re.escape(self.pkg_name)+"-"
-        print(self.pkg_name)
         self.pkglist = [f for f in full_list if re.search(regexp, f)]
     
     # Using Cache Directory, get full names of both current and previous file
