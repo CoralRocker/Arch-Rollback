@@ -86,8 +86,7 @@ instr = repeatingInput(f"Print command? {Fore.GREEN}(Y/n){Fore.RESET} ", 'y')[0]
 if instr == 'y':
     l.printCommand(True)
 
-# TODO Make program downgrade by itself...
-instr = repeatingInput(f"Downgrade? (Y/n) ", 'y')[0].lower()
+instr = repeatingInput(f"Downgrade? {Fore.GREEN}(Y/n){Fore.RESET} ", 'y')[0].lower()
 if instr == 'y':
     l.downgrade()
 
