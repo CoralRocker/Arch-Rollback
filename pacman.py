@@ -74,15 +74,23 @@ class pacman_list:
             print(f"{pkg.pkg_name} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
     
     def printFiles(self, numbered=False):
+        max_len = 0
+        for pkg in self.pkgs:
+            if len(pkg.pkg_name) > max_len:
+                max_len = len(pkg.pkg_name)
+        max_len += 1
         if not numbered:
             for pkg in self.pkgs:
                 # print(f"{pkg.pkg_name} {pkg.pkg_files}")
-                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
+                space = ' ' * (max_len - len(pkg.pkg_name))
+                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET + space}", end='')
+                print(f"upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
         else:
             space_len = len(str(len(self.pkgs)))
             for index, pkg in enumerate(self.pkgs):
                 out = Fore.GREEN + "("+(" "*(space_len-len(str(index))))+str(index+1)+") " + Fore.RESET # Gets correctly formatted index
-                out += pkg.pkg_name + " " + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
+                space = ' ' * (max_len - len(pkg.pkg_name))
+                out += pkg.pkg_name + space + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
                 print(out)
 
         

@@ -55,11 +55,10 @@ else:
     for line in f:
         if re.search("upgraded", line):
             l.cadd(line)
-
+    l.sort()
 '''
-Run package list discovery methods
+Run package discovery methods
 '''
-l.sort()
 l.updatePackages()
 print("Packages Found and Sorted.")
 
