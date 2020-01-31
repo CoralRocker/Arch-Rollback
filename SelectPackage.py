@@ -36,27 +36,34 @@ def main(stdscr):
         offset = 0
         space_len = len(str(len(pkg_list)))
         for index, pkg in enumerate(pkg_list, 1):
-            if index == height:
+            if index+offset == height:
                 break
-            stdscr.addstr(index + offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(1)) # Gets correctly formatted index
-            stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
+            if index + 1 > offset:
+                stdscr.addstr(index + offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(1)) # Gets correctly formatted index
+                stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
         
-        stdscr.addstr(height - 1, 0, str(multiselect_indeces[key]))
         c = stdscr.getch()
         if chr(c).lower() == 'q':
             break
         elif c == curses.KEY_RIGHT:
             current_key = (current_key + 1 if current_key + 1 < max_key else 0)
             current_item = 0
+            offset = 0
         elif c == curses.KEY_LEFT:
             current_key = (current_key - 1 if current_key - 1 >= 0 else max_key - 1)
             current_item = 0
+            offset = 0
         elif c == curses.KEY_DOWN:
-            current_item = (current_item + 1 if current_item + 1 < num_items else 0)
+            current_item = (current_item + 1 if current_item + 1 < num_items else num_items - 1)
+            if current_item - offset == height:
+                offset += 1
         elif c == curses.KEY_UP:
-            current_item = (current_item - 1 if current_item - 1 >= 0 else num_items - 1)
-        elif chr(c) == 'e':
-            multiselect_indeces[key].append(current_item)
+            current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
+        elif chr(c) == ' ':
+            if current_item in multiselect_indeces[key]:
+                multiselect_indeces[key].remove(current_item)
+            else:
+                multiselect_indeces[key].append(current_item)
         stdscr.refresh()
 
 
