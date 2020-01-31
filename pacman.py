@@ -143,7 +143,7 @@ class pacman_list:
         self.cache_installed_packages = [pkg for pkg in self.cache_installed_packages if len(pkg.pkglist)>0]
         self.cached = True
 
-    def printCachePackages(self):
+    def sortCachePackages(self):
         if not self.cached:
            self.getCachePackages()
         self.cache_installed_packages.sort(key=lambda x: x.pkg_name)
@@ -155,11 +155,8 @@ class pacman_list:
             except KeyError:
                 alpha_packages[pkg.pkg_name[0].lower()] = []
                 alpha_packages[pkg.pkg_name[0].lower()].append(pkg)
-        for key in alpha_packages:
-            print(f"KEY: {key}")
-            for pkg in alpha_packages[key]:
-                print(f"{Fore.RED}{Back.RED}::{Fore.RESET}{Back.RESET}{pkg.pkg_name}", end='')
-            print()
+        self.alphabetised = alpha_packages
+
 
 '''
 Class holding package information
