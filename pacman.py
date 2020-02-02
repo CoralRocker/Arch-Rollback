@@ -156,7 +156,15 @@ class pacman_list:
                 alpha_packages[pkg.pkg_name[0].lower()] = []
                 alpha_packages[pkg.pkg_name[0].lower()].append(pkg)
         self.alphabetised = alpha_packages
-
+    
+    def getWebCachedPackages(self):
+        import requests
+        rxp = re.compile("(?<=href=\")([\w\d\-\_]+)(?=\/)")
+        for key in self.alphabetised.keys():
+            url = 'https://archive.archlinux.org/packages/'+key+'/'
+            index_list = requests.get(url).content.decode('utf-8').split('\r\n')
+            web_packages = [rxp.search(pkg).group(1) for pkg in index_list if rxp.search(pkg)]
+            print(len(web_packages))
 
 '''
 Class holding package information
