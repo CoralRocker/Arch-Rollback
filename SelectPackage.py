@@ -1,8 +1,11 @@
 import pacman
 import curses
 
+
 def main(stdscr):
     
+
+
     curses.noecho()
     curses.cbreak()
     curses.curs_set(0)
@@ -88,6 +91,59 @@ def main(stdscr):
             curses.noecho()
             curses.cbreak()
             curses.curs_set(0)
+        elif chr(c) == 's':
+            curses.echo()
+            curses.nocbreak()
+            curses.curs_set(1)
+            nums = []
+            while 1:
+                stdscr.move(height-1, 0)
+                stdscr.clrtoeol()
+                stdscr.addstr(height-1, 0, "Enter first number: ")
+                stdscr.refresh()
+                c = stdscr.getstr()
+                t = 0
+                try:
+                     t = int(c)
+                except:
+                    tmp = f"{str(c)} is not a valid number"
+                    stdscr.move(height-2, 0)
+                    stdscr.clrtoeol()
+                    stdscr.addstr(height-2, 0, tmp)
+                if t:
+                    nums.append(t)
+                    break
+            while 1:
+                stdscr.move(height-1, 0)
+                stdscr.clrtoeol()
+                stdscr.addstr(height-1, 0, "Enter second number: ")
+                stdscr.refresh()
+                c = stdscr.getstr()
+                t = 0
+                try:
+                     t = int(c)
+                except:
+                    tmp = f"{str(c)} is not a valid number"
+                    stdscr.move(height-2, 0)
+                    stdscr.clrtoeol()
+                    stdscr.addstr(height-2, 0, tmp)
+                if t:
+                    nums.append(t)
+                    break
+            nums.sort()
+            for num in range(nums[0], nums[1]+1):
+                if num-1 > -1 and num-1 < len(pkg_list):
+                    if num-1 in multiselect_indeces[key]:
+                        multiselect_indeces[key].remove(num-1)
+                    else:
+                        multiselect_indeces[key].append(num-1)
+
+
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(0)
+
+
 
         stdscr.refresh()
 
