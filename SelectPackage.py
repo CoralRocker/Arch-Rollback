@@ -1,6 +1,7 @@
 import pacman
 import curses
 
+selected_packages = []
 
 def main(stdscr):
     
@@ -30,6 +31,8 @@ def main(stdscr):
     for k in l.alphabetised.keys():
         multiselect_indeces[k] = []
     offset = 0
+
+
     while True:
         stdscr.clear()
         key = list(l.alphabetised.keys())[current_key]
@@ -142,10 +145,26 @@ def main(stdscr):
             curses.noecho()
             curses.cbreak()
             curses.curs_set(0)
-
-
-
+        elif chr(c) == 'e':
+            curses.echo()
+            curses.nocbreak()
+            curses.curs_set(1)
+            stdscr.move(height-1, 0)
+            stdscr.clrtoeol()
+            stdscr.addstr(height-1, 0, "Press Y to confirm Exit: ")
+            stdscr.refresh()
+            c = chr(stdscr.getch()).lower()
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(0)
+            if c == 'y':
+                for key in list(l.alphabetised.keys()):
+                    for index in multiselect_indeces[key]:
+                        selected_packages.append(l.alphabetised[key][index])
+            break            
         stdscr.refresh()
 
 
 curses.wrapper(main)
+print(len(selected_packages))
+
