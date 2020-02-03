@@ -7,6 +7,8 @@ import configparser
 from colorama import Fore, Back, Style
 import subprocess
 import string
+import requests
+
 
 config = configparser.ConfigParser()
 config.read("downgrader.conf")
@@ -158,13 +160,15 @@ class pacman_list:
         self.alphabetised = alpha_packages
     
     def getWebCachedPackages(self):
-        import requests
         rxp = re.compile("(?<=href=\")([\w\d\-\_]+)(?=\/)")
         for key in self.alphabetised.keys():
             url = 'https://archive.archlinux.org/packages/'+key+'/'
             index_list = requests.get(url).content.decode('utf-8').split('\r\n')
             web_packages = [rxp.search(pkg).group(1) for pkg in index_list if rxp.search(pkg)]
             print(len(web_packages))
+            for pkg in self.alphabetised[key]:
+                if pkg.pkg_name in web_packages:
+                    pkg.getWebCache(url+pkg.pkg_name+'/')
 
 '''
 Class holding package information
@@ -220,4 +224,15 @@ class pacman_package:
                 self.pkg_files[1] = cache_dir+('/' if cache_dir[len(cache_dir)-1] != '/' else '')+f
             elif re.search(regexp_old, f):
                 self.pkg_files[0] = cache_dir+('/' if cache_dir[len(cache_dir)-1] != '/' else '')+f
+    
+    def getWebCache(self, url):
+        index = requests.get(url).content.decode('utf-8').split('\r\n')
+        ename = re.escape(self.pkg_name)
+        index = [f for f in index if re.search(ename, f)]
+        index = [f for f in index if re.search("href=\""+ename, f)]
+        rxp = re.compile("(?<=href=\")(.+)(?=\">)")
+        index = [rxp.search(f).group(1) for f in index if rxp.search(f)]
+        index = list(set(index))
+        print(index)
+        
 
