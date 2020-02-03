@@ -233,6 +233,8 @@ class pacman_package:
         rxp = re.compile("(?<=href=\")(.+)(?=\">)")
         index = [rxp.search(f).group(1) for f in index if rxp.search(f)]
         index = list(set(index))
+        index.sort(key=lambda x: len(x))
+        index = [ f for f in index if not re.search("\.sig$", f) ] 
         print(index)
         
 
