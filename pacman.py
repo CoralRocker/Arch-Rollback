@@ -159,6 +159,10 @@ class pacman_list:
                 alpha_packages[pkg.pkg_name[0].lower()].append(pkg)
         self.alphabetised = alpha_packages
     
+    '''
+    As great as this method is, don't use it.
+    Only cache specific packages one at a time for efficiency's sake.
+    '''
     def getWebCachedPackages(self):
         rxp = re.compile("(?<=href=\")([\w\d\-\_]+)(?=\/)")
         for key in self.alphabetised.keys():
@@ -170,6 +174,22 @@ class pacman_list:
                 if pkg.pkg_name in web_packages:
                     pkg.getWebCache(url+pkg.pkg_name+'/')
 
+    def getSelectWebCachedPackages(self, alpha_dict):
+        rxp = re.compile("(?<=href=\")([\w\d\-\_]+)(?=\/)")
+        for key in alpha_dict.keys():
+            if len(alpha_dict[key]) < 1:
+                continue
+            url = 'https://archive.archlinux.org/packages/'+key+'/'
+            index_list = requests.get(url).content.decode('utf-8').split('\r\n')
+            web_packages = [rxp.search(pkg).group(1) for pkg in index_list if rxp.search(pkg)]
+            print(len(web_packages))
+            for pkg in alpha_dict[key]:
+                if pkg.pkg_name in web_packages:
+                    pkg.getWebCache(url+pkg.pkg_name+'/')
+        self.selected_packages = []
+        for k in alpha_dict.keys():
+            for item in alpha_dict[k]:
+                self.selected_packages.append(item)
 '''
 Class holding package information
 Allows for easy sorting and retrieving of packages for downgrading
@@ -233,8 +253,15 @@ class pacman_package:
         rxp = re.compile("(?<=href=\")(.+)(?=\">)")
         index = [rxp.search(f).group(1) for f in index if rxp.search(f)]
         index = list(set(index))
-        index.sort(key=lambda x: len(x))
         index = [ f for f in index if not re.search("\.sig$", f) ] 
-        print(index)
+        self.web_cached = True
+        urls = [url+f for f in index]
+        rxp = re.compile('('+ename+'-.+)(?=(-|-x86_64|-any).pkg.tar.)')
+        names = [rxp.search(f).group(1) for f in index if rxp.search(f)]
+        self.web_cache = []
+        for i in range(0, len(names)):
+            self.web_cache.append((names[i], urls[i]))
+
+        print(self.web_cache)
         
 

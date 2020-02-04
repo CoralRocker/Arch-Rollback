@@ -1,7 +1,8 @@
 import pacman
 import curses
 
-selected_packages = []
+selected_packages = dict()
+l = pacman.pacman_list()
 
 def main(stdscr):
     
@@ -15,7 +16,6 @@ def main(stdscr):
     height, width = stdscr.getmaxyx()
     stdscr.addstr(int(height/2), int(width/2 - 20), "Initializing Package List. Please Wait")
     stdscr.refresh()
-    l = pacman.pacman_list()
     l.getCachePackages()
     l.sortCachePackages() 
     
@@ -43,6 +43,8 @@ def main(stdscr):
             if index < (height + offset) and index >= offset:
                 stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(1)) # Gets correctly formatted index
                 stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
+                if index-1 in multiselect_indeces[key]:
+                    stdscr.addstr("  #", (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
         string = f"KEY: {key.upper()}"
         stdscr.move(0, 0)
         stdscr.clrtoeol()
@@ -159,12 +161,13 @@ def main(stdscr):
             curses.curs_set(0)
             if c == 'y':
                 for key in list(l.alphabetised.keys()):
+                    selected_packages[key] = []
                     for index in multiselect_indeces[key]:
-                        selected_packages.append(l.alphabetised[key][index])
+                        selected_packages[key].append(l.alphabetised[key][index])
             break            
         stdscr.refresh()
 
 
 curses.wrapper(main)
-print(len(selected_packages))
-
+print(selected_packages)
+l.getSelectWebCachedPackages(selected_packages)
