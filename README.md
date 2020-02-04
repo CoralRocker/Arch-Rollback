@@ -1,6 +1,9 @@
 # Arch-Rollback - Development branch
 The easy way to undo previous upgrades in Arch and other Linux Distributions that use the _pacman_ package manager.
 
+# Dependencies
+This program relies upon [Colorama](https://github.com/tartley/colorama) and Curses to work. Colorama can be installed from github or by running `pip install --user colorama`.
+
 # Installation
 Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
 
