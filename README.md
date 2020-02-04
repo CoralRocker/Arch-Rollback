@@ -1,8 +1,12 @@
 # Arch-Rollback
 The easy way to undo previous upgrades in Arch and other Linux Distributions that use the _pacman_ package manager.
 
+# Dependencies
+This program relies upon [Colorama](https://github.com/tartley/colorama) to work correctly. You can install Colorama from github or simply run  `pip install --user colorama`.
+
 # Installation
 Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
+
 
 # Usage
 Simply run `python UndoUpgrade.py` in the git directory. The program will run you through downgrading.
