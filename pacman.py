@@ -182,7 +182,6 @@ class pacman_list:
             url = 'https://archive.archlinux.org/packages/'+key+'/'
             index_list = requests.get(url).content.decode('utf-8').split('\r\n')
             web_packages = [rxp.search(pkg).group(1) for pkg in index_list if rxp.search(pkg)]
-            print(len(web_packages))
             for pkg in alpha_dict[key]:
                 if pkg.pkg_name in web_packages:
                     pkg.getWebCache(url+pkg.pkg_name+'/')
@@ -190,6 +189,11 @@ class pacman_list:
         for k in alpha_dict.keys():
             for item in alpha_dict[k]:
                 self.selected_packages.append(item)
+                item.key = k
+        for pkg in self.selected_packages:
+            pkg.setPkgList(self.cache_dir_list)
+            pkg.getVersions(self.alphabetised)
+
 '''
 Class holding package information
 Allows for easy sorting and retrieving of packages for downgrading
@@ -211,6 +215,7 @@ class pacman_package:
             self.pkg_name = name
             self.new_ver = ver
             self.old_ver = '0'
+            self.key = None
     def __str__(self):
         return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
     def __repr__(self):
@@ -261,7 +266,21 @@ class pacman_package:
         self.web_cache = []
         for i in range(0, len(names)):
             self.web_cache.append((names[i], urls[i]))
-
-        print(self.web_cache)
+        print(f"Retrieved {self.pkg_name}")
         
-
+    def getVersions(self, flist):
+        close = []
+        for pkg in flist[self.key]:
+            if re.search(re.escape(self.pkg_name), pkg.pkg_name):
+                close.append(pkg.pkg_name)
+        rxp = re.compile('^'+re.escape(self.pkg_name)+'-(.+)(?=\.pkg)')
+        brxp = [re.compile('^('+re.escape(pkg)+')-(.+)(?=\.pkg)') for pkg in close if pkg != self.pkg_name]
+        
+        for pkg in self.pkglist:
+            bad = False
+            for rx in brxp:
+                if rx.search(pkg):
+                    print(f"Bad {rx.search(pkg).group(1)} for good {self.pkg_name}")
+                    bad = True
+            if rxp.search(pkg) and not bad:
+                print(rxp.search(pkg).group(1))

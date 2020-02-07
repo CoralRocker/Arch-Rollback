@@ -41,10 +41,8 @@ def main(stdscr):
         space_len = len(str(len(pkg_list)))
         for index, pkg in enumerate(pkg_list, 1):
             if index < (height + offset) and index >= offset:
-                stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(1)) # Gets correctly formatted index
+                stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(2 if index -1 in multiselect_indeces[key] else 1)) # Gets correctly formatted index
                 stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
-                if index-1 in multiselect_indeces[key]:
-                    stdscr.addstr("  #", (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
         string = f"KEY: {key.upper()}"
         stdscr.move(0, 0)
         stdscr.clrtoeol()
@@ -169,5 +167,4 @@ def main(stdscr):
 
 
 curses.wrapper(main)
-print(selected_packages)
 l.getSelectWebCachedPackages(selected_packages)
