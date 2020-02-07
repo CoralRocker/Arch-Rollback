@@ -193,6 +193,7 @@ class pacman_list:
         for pkg in self.selected_packages:
             pkg.setPkgList(self.cache_dir_list)
             pkg.getVersions(self.alphabetised)
+            pkg.removeWebDuplicates()    
 
 '''
 Class holding package information
@@ -250,6 +251,10 @@ class pacman_package:
             elif re.search(regexp_old, f):
                 self.pkg_files[0] = cache_dir+('/' if cache_dir[len(cache_dir)-1] != '/' else '')+f
     
+    '''
+    Given the url for the package archive, finds all possible versions of the package
+    and saves its url for later useage.
+    '''
     def getWebCache(self, url):
         index = requests.get(url).content.decode('utf-8').split('\r\n')
         ename = re.escape(self.pkg_name)
@@ -261,26 +266,62 @@ class pacman_package:
         index = [ f for f in index if not re.search("\.sig$", f) ] 
         self.web_cached = True
         urls = [url+f for f in index]
-        rxp = re.compile('('+ename+'-.+)(?=(-|-x86_64|-any).pkg.tar.)')
+        rxp = re.compile(ename+'-(.+)(?=(-|-x86_64|-any).pkg.tar.)')
         names = [rxp.search(f).group(1) for f in index if rxp.search(f)]
-        self.web_cache = []
+        self.full_cache = []
         for i in range(0, len(names)):
-            self.web_cache.append((names[i], urls[i]))
+            self.full_cache.append((names[i], urls[i]))
         print(f"Retrieved {self.pkg_name}")
-        
+       
+
+    '''
+    Because some packages may have both web caching and local caching, this method retrieves all 
+    locally cached package versions. 
+    Previously, there was a bug where packages such as 'bluez' which have helper packages such as 
+    'bluez-utils' or 'bluez-lib' would have it and all helper packages retrieved together. It has 
+    been fixed. 
+    '''
     def getVersions(self, flist):
         close = []
         for pkg in flist[self.key]:
             if re.search(re.escape(self.pkg_name), pkg.pkg_name):
                 close.append(pkg.pkg_name)
-        rxp = re.compile('^'+re.escape(self.pkg_name)+'-(.+)(?=\.pkg)')
+        rxp = re.compile('^'+re.escape(self.pkg_name)+'-(.+)(?=(-|-x86_64|-any)\.pkg)')
         brxp = [re.compile('^('+re.escape(pkg)+')-(.+)(?=\.pkg)') for pkg in close if pkg != self.pkg_name]
         
         for pkg in self.pkglist:
             bad = False
             for rx in brxp:
                 if rx.search(pkg):
-                    print(f"Bad {rx.search(pkg).group(1)} for good {self.pkg_name}")
+                    # print(f"Bad {rx.search(pkg).group(1)} for good {self.pkg_name}")
                     bad = True
             if rxp.search(pkg) and not bad:
-                print(rxp.search(pkg).group(1))
+                self.full_cache.append((rxp.search(pkg).group(1), cache_dir+'/'+pkg))
+                # print(f"{self.pkg_name} :: {rxp.search(pkg).group(1)}")
+        self.full_cache.sort(key=lambda x: x[0])
+
+
+    '''
+    Removes duplicates in web cached items, by default favoring locally cached packages. 
+    If the favor_local argument is False, will favor web packages.
+    '''
+    def removeWebDuplicates(self, favor_local=True):
+        for tpl in self.full_cache:
+            dup_indexes = [i for i,v in enumerate(self.full_cache) if v[0] == tpl[0]]
+            if len(dup_indexes) > 1:
+                # Get indexes of duplicate versions with different cache methods.
+                # There should never be more than one alternative.
+                url_indexes = [i for i in dup_indexes if re.search("https://", self.full_cache[i][1])]
+                local_indexes = [i for i in dup_indexes if re.search(re.escape(cache_dir), self.full_cache[i][1])]
+                
+                url_indexes.sort()
+                local_indexes.sort()
+
+                if favor_local:
+                    # Reversed so that removals do not affect each other.
+                    for i in reversed(url_indexes):
+                        self.full_cache.pop(url_indexes[i])
+                else:
+                    for i in reversed(local_indexes):
+                        self.full_cache.pop(local_indexes[i])
+
