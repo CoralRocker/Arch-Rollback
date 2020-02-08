@@ -5,9 +5,6 @@ selected_packages = dict()
 l = pacman.pacman_list()
 
 def main(stdscr):
-    
-
-
     curses.noecho()
     curses.cbreak()
     curses.curs_set(0)
@@ -165,6 +162,96 @@ def main(stdscr):
             break            
         stdscr.refresh()
 
+def SelectPackageVersions(stdscr):
+    curses.noecho()
+    curses.cbreak()
+    curses.curs_set(0)
+    stdscr.keypad(True)
+    stdscr.clear()
+    height, width = stdscr.getmaxyx()
+    
+    curses.start_color()
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_RED, -1)
+    curses.init_pair(2, curses.COLOR_GREEN, -1)
+    tmp = f"Retrieving {len(selected_packages)} packages. This may take up to {len(selected_packages) * 10} seconds"
+    stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+    stdscr.refresh()
+    l.getSelectWebCachedPackages(selected_packages)
+    
+    current_pkg = 0
+    max_pkg = len(l.selected_packages)
+    selected_version = dict()
+    selected_index = dict()
+    for pkg in l.selected_packages:
+        selected_version[pkg.pkg_name] = pkg.new_ver
+        selected_index[pkg.pkg_name] = -1
+
+    current_item = 0
+    offset = 0
+
+
+    while True:
+        stdscr.clear()
+        cur_item = l.selected_packages[current_pkg]
+        num_items = len(cur_item.full_cache)
+        space_len = len(str(len(cur_item.full_cache)))
+
+        for index, pkg in enumerate(cur_item.full_cache , 1):
+            if index < (height + offset) and index >= offset:
+                stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(2 if index-1 == selected_index[cur_item.pkg_name]  else 1)) # Gets correctly formatted index
+                stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0))
+        string = f"KEY: {cur_item.pkg_name} Selected Version: {cur_item.full_cache[selected_index[cur_item.pkg_name]][0] if selected_index[cur_item.pkg_name] != -1 else 'None'}"
+        stdscr.move(0, 0)
+        stdscr.clrtoeol()
+        stdscr.addstr(0, int(width/2 - len(string)), string, curses.A_STANDOUT | curses.A_BOLD)
+        c = stdscr.getch()
+        if chr(c).lower() == 'q':
+            break
+        elif c == curses.KEY_RIGHT:
+            current_pkg = (current_pkg + 1 if current_pkg + 1 < max_pkg else 0)
+            current_item = 0
+            offset = 0
+        elif c == curses.KEY_LEFT:
+            current_pkg = (current_pkg - 1 if current_pkg - 1 >= 0 else max_pkg - 1)
+            current_item = 0
+            offset = 0
+        elif c == curses.KEY_DOWN:
+            current_item = (current_item + 1 if current_item + 1 < num_items else num_items - 1)
+            if current_item - offset == height -1 :
+                offset += 1
+        elif c == curses.KEY_UP:
+            current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
+            if current_item - offset < 1:
+                offset -= 1
+        
+        elif chr(c) == ' ':
+            if current_item == selected_index[cur_item.pkg_name]:
+                selected_index[cur_item.pkg_name] = -1
+            else:
+                selected_index[cur_item.pkg_name] = current_item
+        '''
+        elif chr(c) == 'e':
+            curses.echo()
+            curses.nocbreak()
+            curses.curs_set(1)
+            stdscr.move(height-1, 0)
+            stdscr.clrtoeol()
+            stdscr.addstr(height-1, 0, "Press Y to confirm Exit: ")
+            stdscr.refresh()
+            c = chr(stdscr.getch()).lower()
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(0)
+            if c == 'y':
+                for key in list(l.alphabetised.keys()):
+                    selected_packages[key] = []
+                    for index in multiselect_indeces[key]:
+                        selected_packages[key].append(l.alphabetised[key][index])
+            break            
+        '''
+        stdscr.refresh()
 
 curses.wrapper(main)
-l.getSelectWebCachedPackages(selected_packages)
+curses.wrapper(SelectPackageVersions)
+

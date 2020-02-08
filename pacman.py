@@ -169,7 +169,6 @@ class pacman_list:
             url = 'https://archive.archlinux.org/packages/'+key+'/'
             index_list = requests.get(url).content.decode('utf-8').split('\r\n')
             web_packages = [rxp.search(pkg).group(1) for pkg in index_list if rxp.search(pkg)]
-            print(len(web_packages))
             for pkg in self.alphabetised[key]:
                 if pkg.pkg_name in web_packages:
                     pkg.getWebCache(url+pkg.pkg_name+'/')
@@ -271,7 +270,7 @@ class pacman_package:
         self.full_cache = []
         for i in range(0, len(names)):
             self.full_cache.append((names[i], urls[i]))
-        print(f"Retrieved {self.pkg_name}")
+        # print(f"Retrieved {self.pkg_name}")
        
 
     '''
@@ -319,9 +318,9 @@ class pacman_package:
 
                 if favor_local:
                     # Reversed so that removals do not affect each other.
-                    for i in reversed(url_indexes):
-                        self.full_cache.pop(url_indexes[i])
+                    #for i in reversed(url_indexes):
+                    self.full_cache.pop(url_indexes[0])
                 else:
-                    for i in reversed(local_indexes):
-                        self.full_cache.pop(local_indexes[i])
+                    #for i in reversed(local_indexes):
+                    self.full_cache.pop(local_indexes[0])
 
