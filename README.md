@@ -1,4 +1,4 @@
-# Arch-Rollback - Development branch
+# Arch-Rollback
 The easy way to undo previous upgrades in Arch and other Linux Distributions that use the _pacman_ package manager.
 
 # Dependencies
