@@ -271,5 +271,6 @@ def SelectPackageVersions(stdscr):
 curses.wrapper(main)
 curses.wrapper(SelectPackageVersions)
 for pkg in l.selected_packages:
-    print(pkg.selected_version)
-l.printSelected(True)
+    if pkg.selected_version != None:
+        l.cmd.append(pkg.selected_version)
+l.downgrade(True)

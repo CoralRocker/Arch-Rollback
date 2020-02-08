@@ -114,9 +114,9 @@ class pacman_list:
     def downgrade(self, external=False):
         if not external:
             for pkg in (self.selected_packages if self.selected else self.pkgs):
-                cmd.append(pkg.pkg_files[0])
+                self.cmd.append(pkg.pkg_files[0])
         self.cmd = ' '.join(self.cmd)
-        subprocess.call(cmd, shell=True)
+        subprocess.call(self.cmd, shell=True)
 
     def getPackages(self, inputString):
         # 1-2 3 556
