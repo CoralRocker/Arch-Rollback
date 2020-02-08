@@ -3,6 +3,7 @@ import curses
 
 selected_packages = dict()
 l = pacman.pacman_list()
+exit = False
 
 def main(stdscr):
     curses.noecho()
@@ -46,7 +47,20 @@ def main(stdscr):
         stdscr.addstr(0, int(width/2 - len(string)), string, curses.A_STANDOUT | curses.A_BOLD)
         c = stdscr.getch()
         if chr(c).lower() == 'q':
-            break
+            curses.echo()
+            curses.nocbreak()
+            curses.curs_set(1)
+            stdscr.move(height-1, 0)
+            stdscr.clrtoeol()
+            stdscr.addstr(height-1, 0, "Press Y to confirm Exit. You WILL LOSE ALL SELECTIONS: ")
+            stdscr.refresh()
+            c = chr(stdscr.getch()).lower()
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(0)
+            if c == 'y':
+                stdscr.endwin()
+                quit()
         elif c == curses.KEY_RIGHT:
             current_key = (current_key + 1 if current_key + 1 < max_key else 0)
             current_item = 0
@@ -174,7 +188,11 @@ def SelectPackageVersions(stdscr):
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_RED, -1)
     curses.init_pair(2, curses.COLOR_GREEN, -1)
-    tmp = f"Retrieving {len(selected_packages)} packages. This may take up to {len(selected_packages) * 10} seconds"
+    count = 0
+    for k in selected_packages.keys():
+        for i in selected_packages[k]:
+            count += 1
+    tmp = f"Retrieving {count} packages. This may take up to {count * 5} seconds"
     stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
     stdscr.refresh()
     l.getSelectWebCachedPackages(selected_packages)
@@ -184,7 +202,7 @@ def SelectPackageVersions(stdscr):
     selected_version = dict()
     selected_index = dict()
     for pkg in l.selected_packages:
-        selected_version[pkg.pkg_name] = pkg.new_ver
+        selected_version[pkg.pkg_name] = None
         selected_index[pkg.pkg_name] = -1
 
     current_item = 0
@@ -228,9 +246,10 @@ def SelectPackageVersions(stdscr):
         elif chr(c) == ' ':
             if current_item == selected_index[cur_item.pkg_name]:
                 selected_index[cur_item.pkg_name] = -1
+                selected_version[cur_item.pkg_name] = None
             else:
                 selected_index[cur_item.pkg_name] = current_item
-        '''
+                selected_version[cur_item.pkg_name] = cur_item.full_cache[current_item]
         elif chr(c) == 'e':
             curses.echo()
             curses.nocbreak()
@@ -244,14 +263,13 @@ def SelectPackageVersions(stdscr):
             curses.cbreak()
             curses.curs_set(0)
             if c == 'y':
-                for key in list(l.alphabetised.keys()):
-                    selected_packages[key] = []
-                    for index in multiselect_indeces[key]:
-                        selected_packages[key].append(l.alphabetised[key][index])
+                for pkg in l.selected_packages:
+                        pkg.selected_version = selected_version[pkg.pkg_name][1] if selected_version[pkg.pkg_name] != None else None
             break            
-        '''
         stdscr.refresh()
 
 curses.wrapper(main)
 curses.wrapper(SelectPackageVersions)
-
+for pkg in l.selected_packages:
+    print(pkg.selected_version)
+l.printSelected(True)

@@ -24,9 +24,9 @@ then for downgrading said packages.
 '''
 class pacman_list:
     '''
-    NameRegex is to retrieve name of programs
-    VerRegex is to retrieve version of programs
-    cache_dir_list is list of all cached pacman packages
+    This class runs both the UndoUpgrade.py program and the SelectPackage.py program
+    and both use different systems, so it's an absolute mess. I'll clean it up after 
+    I finish the SelectPackage.py program. Till then, this is awful.
     '''
     def __init__(self):
         self.pkgs = []
@@ -37,6 +37,7 @@ class pacman_list:
         self.selected_packages = []
         self.sorted = False
         self.selected = False
+        self.cmd = ['sudo pacman -U']        
 
     # Add to list
     def add(self, package):
@@ -97,18 +98,24 @@ class pacman_list:
                 print(out)
 
     # Prints out full command to run, perhaps with sudo
-    def printCommand(self, sudo=False):
+    def printCommand(self, sudo=False, external=False):
         print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET, end='')
-        command = ("sudo " if sudo else "") + "pacman -U"
-        for pkg in (self.selected_packages if self.selected else self.pkgs):
-            command += " " + pkg.pkg_files[0]
-        print(command)
+        if not external:
+            command = ("sudo " if sudo else "") + "pacman -U"
+            for pkg in (self.selected_packages if self.selected else self.pkgs):
+                command += " " + pkg.pkg_files[0]
+            print(command)
+        else:
+            print(' '.join(self.cmd))
 
-    def downgrade(self):
-        cmd = ['sudo pacman -U']
-        for pkg in (self.selected_packages if self.selected else self.pkgs):
-            cmd.append(pkg.pkg_files[0])
-        cmd = ' '.join(cmd)
+    '''
+    External should be true if you've added the proper command flags to the self.cmd variable beforehand.
+    '''
+    def downgrade(self, external=False):
+        if not external:
+            for pkg in (self.selected_packages if self.selected else self.pkgs):
+                cmd.append(pkg.pkg_files[0])
+        self.cmd = ' '.join(self.cmd)
         subprocess.call(cmd, shell=True)
 
     def getPackages(self, inputString):
@@ -128,9 +135,13 @@ class pacman_list:
         self.selected_packages = [self.pkgs[i-1] for i in indeces]
         self.selected = True
 
-    def printSelected(self):
-        for pkg in self.selected_packages:
-            print(f"{pkg.pkg_name} {pkg.old_ver} -> {pkg.new_ver}")
+    def printSelected(self, selected=False):
+        if not selected:
+            for pkg in self.selected_packages:
+                print(f"{pkg.pkg_name} {pkg.old_ver} -> {pkg.new_ver}")
+        else:
+            for pkg in self.selected_packages:
+                print(f"{pkg.pkg_name} {pkg.selected_version}")
 
     def getCachePackages(self):
         pcmn_installed = list(filter(None, subprocess.run(['/bin/pacman', '-Q'], stdout=subprocess.PIPE).stdout.decode('utf-8').split('\n')))
@@ -216,6 +227,7 @@ class pacman_package:
             self.new_ver = ver
             self.old_ver = '0'
             self.key = None
+        self.select_version = None
     def __str__(self):
         return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
     def __repr__(self):
