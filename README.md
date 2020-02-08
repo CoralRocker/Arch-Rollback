@@ -10,10 +10,10 @@ This program relies upon [Colorama](https://github.com/tartley/colorama) and Cur
 Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
 
 # Usage -- Downgrader
-Simply run `python UndoUpgrade.py` in the git directory. The program will run you through downgrading.
+Simply run `python UndoUpgrade.py` in the git directory. The program will run you through downgrading. This program does not require curses, but does require Colorama.
 
 # Usage -- Package Selecter
-Run `python SelectPackage.py` in the git directory. The package selecter is finally working! The UI is not finished yet, as I think that there's a few things I can do to improve it still, and there may be bugs, but it works!
+Run `python SelectPackage.py` in the git directory. The package selecter is finally working! The UI is not finished yet, as I think that there's a few things I can do to improve it still, and there may be bugs, but it works! This program requires both curses and Colorama.
 
 # Options -- Downgrader
 **Get package by upgrade** Sort packages to downgrade by the last time a package was upgraded with pacman, be it with `pacman -Syu` or `pacman -S`.
