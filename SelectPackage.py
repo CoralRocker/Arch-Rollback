@@ -1,8 +1,8 @@
-import pacman
+import pacnew
 import curses
 
 selected_packages = dict()
-l = pacman.pacman_list()
+l = pacnew.pacman_list()
 exit = False
 
 def main(stdscr):
@@ -270,7 +270,4 @@ def SelectPackageVersions(stdscr):
 
 curses.wrapper(main)
 curses.wrapper(SelectPackageVersions)
-for pkg in l.selected_packages:
-    if pkg.selected_version != None:
-        l.cmd.append(pkg.selected_version)
-l.downgrade(True)
+l.downgrade()
