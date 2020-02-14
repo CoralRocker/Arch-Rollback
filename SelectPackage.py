@@ -60,7 +60,7 @@ def main(stdscr):
             curses.cbreak()
             curses.curs_set(0)
             if c == 'y':
-                stdscr.endwin()
+                curses.endwin()
                 quit()
         elif c == curses.KEY_RIGHT:
             current_key = (current_key + 1 if current_key + 1 < max_key else 0)
@@ -76,7 +76,7 @@ def main(stdscr):
                 offset += 1
         elif c == curses.KEY_UP:
             current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
-            if current_item - offset < 1:
+            if current_item - offset < 0:
                 offset -= 1
         elif chr(c) == ' ':
             if current_item in multiselect_indeces[key]:
