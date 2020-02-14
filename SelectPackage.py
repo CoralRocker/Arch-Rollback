@@ -237,7 +237,20 @@ def SelectPackageVersions(stdscr):
         stdscr.addstr(0, int(width/2 - len(string)), string, curses.A_STANDOUT | curses.A_BOLD)
         c = stdscr.getch()
         if chr(c).lower() == 'q':
-            break
+            curses.echo()
+            curses.nocbreak()
+            curses.curs_set(1)
+            stdscr.move(height-1, 0)
+            stdscr.clrtoeol()
+            stdscr.addstr(height-1, 0, "Press Y to confirm Exit. You WILL LOSE ALL SELECTIONS: ")
+            stdscr.refresh()
+            c = chr(stdscr.getch()).lower()
+            curses.noecho()
+            curses.cbreak()
+            curses.curs_set(0)
+            if c == 'y':
+                curses.endwin()
+                quit()
         elif c == curses.KEY_RIGHT:
             current_pkg = (current_pkg + 1 if current_pkg + 1 < max_pkg else 0)
             current_item = 0
@@ -252,7 +265,7 @@ def SelectPackageVersions(stdscr):
                 offset += 1
         elif c == curses.KEY_UP:
             current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
-            if current_item - offset < 1:
+            if current_item - offset < 0:
                 offset -= 1
         
         elif chr(c) == ' ':
