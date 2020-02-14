@@ -29,29 +29,59 @@ class pacman_list:
     I finish the SelectPackage.py program. Till then, this is awful.
     '''
     def __init__(self):
+        '''
+        Full list of packages from previous upgrade
+        '''
         self.pkgs = []
+        
+        '''
+        Regex used to find name from log
+        '''
         self.NameRegex = re.compile("(?<=(upgraded ))[a-zA-z\d\-\_\.]+?(?= \()")
+        
+        '''
+        Regex used to find version from log
+        '''
         self.VerRegex = re.compile("(?<=\()([\_a-zA-Z\d\.\-\+\:]+) -> ([\_a-zA-Z\d\.\-\+\:]+)(?=\))")   
+        
+        '''
+        Full list of packages in cache directory
+        '''
         self.cache_dir_list = [f for f in listdir(cache_dir) if isfile(join(cache_dir, f))]
-        self.regex = re.compile("(?<=(\[)).*?(?=-\d\d\d\d\])")
+        
+        '''
+        Regex used to find date and time of upgrade from log file
+        '''
+        self.DateRegex = re.compile("(?<=(\[)).*?(?=-\d\d\d\d\])")
+        
+        '''
+        List of packages selected for downgrade
+        '''
         self.selected_packages = []
+        
+        ''' Whether or not the packages have been sorted '''
         self.sorted = False
+
+        ''' Whether or not packages have been selected '''
         self.selected = False
+        
+        ''' List containing command. '''
         self.cmd = ['sudo pacman -U']        
 
-    # Add to list
-    def add(self, package):
-        self.pkgs.append(package)
-    
-    # Add to list without needing to already have a package created
+    '''
+    Add to list without needing to already have a package created
+    '''
     def cadd(self, line):
-        pkg = pacman_package(line, self.regex)
+        pkg = pacman_package(line, self.DateRegex)
         self.pkgs.append(pkg)
-
-    # Repopulate list with packages updated within 30 minute of each other.
+    
+    '''
+    Repopulate list with packages updated within 30 minute of each other.
+    '''
     def sort(self):
         pkg_date = self.pkgs[len(self.pkgs)-1]._date #datetime.datetime(1970, 1, 1, 0, 0, 0)
         good_list = []
+        # Get all packages withing a certain amount of time from each other
         for pkg in reversed(self.pkgs):
             dif = pkg_date - pkg._date
             dif_min = dif.seconds / 60
@@ -62,33 +92,44 @@ class pacman_list:
             pkg_date = pkg._date
         self.pkgs = good_list
         self.sorted = True
-
-    # Call on sorted packages to update their own information
+    '''
+    Call on sorted packages to update their own information
+    '''
     def updatePackages(self):
         for pkg in self.pkgs:
-            pkg.getName(self.NameRegex)
-            pkg.getVer(self.VerRegex)
-            pkg.setPkgList(self.cache_dir_list)
-            pkg.getPackageFiles()
-        self.pkgs.sort(key=lambda x: x.pkg_name)
+            pkg.getName(self.NameRegex) # Sets packages name
+            pkg.getVer(self.VerRegex) # Sets package version
+            pkg.setPkgList(self.cache_dir_list) # Sets package list for package, given a full list of cached packages
+            pkg.getPackageFiles() # Gets necessary files.
+            pkg.selected_version = pkg.pkg_files[0]  # Version to downgrade to.
+        self.pkgs.sort(key=lambda x: x.pkg_name) # Sort alphabetically.
 
-    # Prints some debugging information about packages
+    '''
+    Prints some debugging information about packages
+    '''
     def printPackages(self):
         for pkg in self.pkgs:
             print(f"{pkg.pkg_name} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
     
+    '''
+    Prints all found packages and their respective files nicely
+    '''
     def printFiles(self, numbered=False):
         max_len = 0
+        # Find max len of numbers to print
         for pkg in self.pkgs:
             if len(pkg.pkg_name) > max_len:
                 max_len = len(pkg.pkg_name)
         max_len += 1
+
+        # Print normally
         if not numbered:
             for pkg in self.pkgs:
                 # print(f"{pkg.pkg_name} {pkg.pkg_files}")
                 space = ' ' * (max_len - len(pkg.pkg_name))
                 print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET + space}", end='')
                 print(f"upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
+        # Print with numbering beforehand
         else:
             space_len = len(str(len(self.pkgs)))
             for index, pkg in enumerate(self.pkgs):
@@ -97,44 +138,51 @@ class pacman_list:
                 out += pkg.pkg_name + space + Fore.RED + str(pkg.old_ver) + Fore.RESET + " -> " + Fore.GREEN + str(pkg.new_ver) + Fore.RESET # Adds package name and versions
                 print(out)
 
-    # Prints out full command to run, perhaps with sudo
-    def printCommand(self, sudo=False, external=False):
+    '''
+    Prints out full command to run, perhaps with sudo
+    '''
+    def printCommand(self, sudo=False):
         print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET, end='')
-        if not external:
-            command = ("sudo " if sudo else "") + "pacman -U"
-            for pkg in (self.selected_packages if self.selected else self.pkgs):
-                command += " " + pkg.pkg_files[0]
-            print(command)
-        else:
-            print(' '.join(self.cmd))
+        command = ("sudo " if sudo else "") + "pacman -U"
+        for pkg in (self.selected_packages if self.selected else self.pkgs):
+            command += " " + pkg.pkg_files[0]
+        print(command)
 
     '''
-    External should be true if you've added the proper command flags to the self.cmd variable beforehand.
+    Runs the actual downgrade operation. 
     '''
-    def downgrade(self, external=False):
-        if not external:
-            for pkg in (self.selected_packages if self.selected else self.pkgs):
-                self.cmd.append(pkg.pkg_files[0])
+    def downgrade(self):
+        for pkg in (self.selected_packages if self.selected else self.pkgs):
+            self.cmd.append(pkg.selected_version)
         self.cmd = ' '.join(self.cmd)
         subprocess.call(self.cmd, shell=True)
 
+    '''
+    Given a string containing the indexes of the selected packages,
+    puts the packages in the selected_packages list for future use.
+    '''
     def getPackages(self, inputString):
         # 1-2 3 556
-        pkg = list(filter(None, re.split(',| ', inputString)))
-        regex = re.compile("(\d+)-(\d+)")
+        pkg = list(filter(None, re.split(',| ', inputString))) # Split into list of numbers and ranges
+        regex = re.compile("(\d+)-(\d+)") # Splits ranges into constituent numbers
         indeces = []
         for num in pkg:
+            # If it's a range
             if re.search("-", num):
                 nums = [int(regex.search(num).group(1)), int(regex.search(num).group(2))]
                 nums.sort()
+                # Add all numbers in range inclusive
                 for i in range(nums[0], nums[1]+1):
                     indeces.append(i)
             else:
                 indeces.append(int(num))
-        indeces = list(dict.fromkeys(indeces))
-        self.selected_packages = [self.pkgs[i-1] for i in indeces]
+        indeces = list(dict.fromkeys(indeces)) # Remove duplicates
+        self.selected_packages = [self.pkgs[i-1] for i in indeces] # Save packages
         self.selected = True
 
+    '''
+    Prints all the packages to be updated
+    '''
     def printSelected(self, selected=False):
         if not selected:
             for pkg in self.selected_packages:
@@ -143,6 +191,9 @@ class pacman_list:
             for pkg in self.selected_packages:
                 print(f"{pkg.pkg_name} {pkg.selected_version}")
 
+    '''
+    Gets all packages 
+    ''' 
     def getCachePackages(self):
         pcmn_installed = list(filter(None, subprocess.run(['/bin/pacman', '-Q'], stdout=subprocess.PIPE).stdout.decode('utf-8').split('\n')))
         self.cache_installed_packages = []
@@ -155,7 +206,10 @@ class pacman_list:
             pkg.setPkgList(self.cache_dir_list)
         self.cache_installed_packages = [pkg for pkg in self.cache_installed_packages if len(pkg.pkglist)>0]
         self.cached = True
-
+    
+    '''
+    Alphabetically Sorts the cached packages into a dict
+    '''
     def sortCachePackages(self):
         if not self.cached:
            self.getCachePackages()
@@ -184,6 +238,11 @@ class pacman_list:
                 if pkg.pkg_name in web_packages:
                     pkg.getWebCache(url+pkg.pkg_name+'/')
 
+    '''
+    Basically the same as getWebCachedPackages, but much more efficient because it only
+    retrieves the selected packages. Also puts the selected packages in self.selected_packages
+    for downgrading and ease of access
+    '''
     def getSelectWebCachedPackages(self, alpha_dict):
         rxp = re.compile("(?<=href=\")([\w\d\-\_]+)(?=\/)")
         for key in alpha_dict.keys():
@@ -200,10 +259,13 @@ class pacman_list:
             for item in alpha_dict[k]:
                 self.selected_packages.append(item)
                 item.key = k
+        self.selected = True
         for pkg in self.selected_packages:
             pkg.setPkgList(self.cache_dir_list)
             pkg.getVersions(self.alphabetised)
             pkg.removeWebDuplicates()    
+            
+
 
 '''
 Class holding package information
@@ -228,30 +290,48 @@ class pacman_package:
             self.old_ver = '0'
             self.key = None
         self.select_version = None
+    
+    '''
+    Print packages cleanly
+    '''
     def __str__(self):
         return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
+    
+    '''
+    Same as __str__ but for lists and stuff
+    '''
     def __repr__(self):
         return self.__str__()
-
-    # Returns a pretty version of the date
+    
+    '''
+    Returns a pretty version of the date
+    '''
     def date(self):
         return self._date.strftime("%c")
 
-    # Gets passed a regex from the wrapper class (pacman_list), uses it to get name
+    '''
+    Gets passed a regex from the wrapper class (pacman_list), uses it to get name
+    '''
     def getName(self, regex):
         self.pkg_name = regex.search(self.line).group(0)    
-
-    # Gets passed a regex from the wrapper class, uses it to get old and new version
+    
+    '''
+    Gets passed a regex from the wrapper class, uses it to get old and new version
+    '''
     def getVer(self, regex):
         self.old_ver = regex.search(self.line).group(1)
         self.new_ver = regex.search(self.line).group(2)
 
-    # Get list of cached packages for program
+    '''
+    Get list of cached packages for program
+    '''
     def setPkgList(self, full_list):
         regexp = "^"+re.escape(self.pkg_name)+"-"
         self.pkglist = [f for f in full_list if re.search(regexp, f)]
     
-    # Using Cache Directory, get full names of both current and previous file
+    '''
+    Using Cache Directory, get full names of both current and previous file
+    '''
     def getPackageFiles(self):
         self.pkg_files = ["", ""]
         regexp_new = "^"+self.pkg_name+"-"+self.new_ver

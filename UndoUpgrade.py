@@ -1,7 +1,7 @@
 from colorama import Fore
 import re
 import configparser
-from pacnew import pacman_list
+from pacman import pacman_list
 
 
 # Simple method to get output from some prompts

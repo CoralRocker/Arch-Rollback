@@ -1,9 +1,9 @@
-import pacnew
+import pacman
 import curses
 import re
 
 selected_packages = dict()
-l = pacnew.pacman_list()
+l = pacman.pacman_list()
 exit = False
 
 def main(stdscr):
