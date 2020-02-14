@@ -185,7 +185,7 @@ def main(stdscr):
                     selected_packages[key] = []
                     for index in multiselect_indeces[key]:
                         selected_packages[key].append(l.alphabetised[key][index])
-            break            
+                break            
         stdscr.refresh()
 
 def SelectPackageVersions(stdscr):
@@ -231,6 +231,8 @@ def SelectPackageVersions(stdscr):
             if index < (height + offset) and index >= offset:
                 stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(2 if index-1 == selected_index[cur_item.pkg_name]  else 1)) # Gets correctly formatted index
                 stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0))
+                if pkg[0] == cur_item.new_ver:
+                    stdscr.addstr(" CURRENTLY INSTALLED", curses.color_pair(2))
         string = f"KEY: {cur_item.pkg_name} Selected Version: {cur_item.full_cache[selected_index[cur_item.pkg_name]][0] if selected_index[cur_item.pkg_name] != -1 else 'None'}"
         stdscr.move(0, 0)
         stdscr.clrtoeol()
