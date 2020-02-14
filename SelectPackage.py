@@ -1,5 +1,6 @@
 import pacnew
 import curses
+import re
 
 selected_packages = dict()
 l = pacnew.pacman_list()
@@ -110,40 +111,51 @@ def main(stdscr):
             curses.nocbreak()
             curses.curs_set(1)
             nums = []
+            ranged = False
             while 1:
                 stdscr.move(height-1, 0)
                 stdscr.clrtoeol()
-                stdscr.addstr(height-1, 0, "Enter first number: ")
+                stdscr.addstr(height-1, 0, "Enter first number Or a Range: ")
                 stdscr.refresh()
                 c = stdscr.getstr()
                 t = 0
                 try:
                      t = int(c)
                 except:
-                    tmp = f"{str(c)} is not a valid number"
-                    stdscr.move(height-2, 0)
-                    stdscr.clrtoeol()
-                    stdscr.addstr(height-2, 0, tmp)
-                if t:
+                    
+                    regex = re.compile("(\d+)\ *-\ *(\d+)")
+                    if not regex.search(str(c)):
+                        tmp = f"{str(c)} is not a valid number"
+                        stdscr.move(height-2, 0)
+                        stdscr.clrtoeol()
+                        stdscr.addstr(height-2, 0, tmp)
+                    else:
+                        ranged = True
+                        nums.append(int(regex.search(str(c)).group(1)))
+                        nums.append(int(regex.search(str(c)).group(2)))
+                        nums.sort()
+                        break
+                if t and not ranged:
                     nums.append(t)
                     break
-            while 1:
-                stdscr.move(height-1, 0)
-                stdscr.clrtoeol()
-                stdscr.addstr(height-1, 0, "Enter second number: ")
-                stdscr.refresh()
-                c = stdscr.getstr()
-                t = 0
-                try:
-                     t = int(c)
-                except:
-                    tmp = f"{str(c)} is not a valid number"
-                    stdscr.move(height-2, 0)
+            if not ranged:
+                while 1:
+                    stdscr.move(height-1, 0)
                     stdscr.clrtoeol()
-                    stdscr.addstr(height-2, 0, tmp)
-                if t:
-                    nums.append(t)
-                    break
+                    stdscr.addstr(height-1, 0, "Enter second number: ")
+                    stdscr.refresh()
+                    c = stdscr.getstr()
+                    t = 0
+                    try:
+                         t = int(c)
+                    except:
+                        tmp = f"{str(c)} is not a valid number"
+                        stdscr.move(height-2, 0)
+                        stdscr.clrtoeol()
+                        stdscr.addstr(height-2, 0, tmp)
+                    if t:
+                        nums.append(t)
+                        break
             nums.sort()
             for num in range(nums[0], nums[1]+1):
                 if num-1 > -1 and num-1 < len(pkg_list):
