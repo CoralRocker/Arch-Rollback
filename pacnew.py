@@ -163,19 +163,21 @@ class pacman_list:
     '''
     def getPackages(self, inputString):
         # 1-2 3 556
-        pkg = list(filter(None, re.split(',| ', inputString)))
-        regex = re.compile("(\d+)-(\d+)")
+        pkg = list(filter(None, re.split(',| ', inputString))) # Split into list of numbers and ranges
+        regex = re.compile("(\d+)-(\d+)") # Splits ranges into constituent numbers
         indeces = []
         for num in pkg:
+            # If it's a range
             if re.search("-", num):
                 nums = [int(regex.search(num).group(1)), int(regex.search(num).group(2))]
                 nums.sort()
+                # Add all numbers in range inclusive
                 for i in range(nums[0], nums[1]+1):
                     indeces.append(i)
             else:
                 indeces.append(int(num))
-        indeces = list(dict.fromkeys(indeces))
-        self.selected_packages = [self.pkgs[i-1] for i in indeces]
+        indeces = list(dict.fromkeys(indeces)) # Remove duplicates
+        self.selected_packages = [self.pkgs[i-1] for i in indeces] # Save packages
         self.selected = True
 
     '''
@@ -288,30 +290,48 @@ class pacman_package:
             self.old_ver = '0'
             self.key = None
         self.select_version = None
+    
+    '''
+    Print packages cleanly
+    '''
     def __str__(self):
         return f"{self.pkg_name} {self.old_ver} {self.new_ver}"
+    
+    '''
+    Same as __str__ but for lists and stuff
+    '''
     def __repr__(self):
         return self.__str__()
-
-    # Returns a pretty version of the date
+    
+    '''
+    Returns a pretty version of the date
+    '''
     def date(self):
         return self._date.strftime("%c")
 
-    # Gets passed a regex from the wrapper class (pacman_list), uses it to get name
+    '''
+    Gets passed a regex from the wrapper class (pacman_list), uses it to get name
+    '''
     def getName(self, regex):
         self.pkg_name = regex.search(self.line).group(0)    
-
-    # Gets passed a regex from the wrapper class, uses it to get old and new version
+    
+    '''
+    Gets passed a regex from the wrapper class, uses it to get old and new version
+    '''
     def getVer(self, regex):
         self.old_ver = regex.search(self.line).group(1)
         self.new_ver = regex.search(self.line).group(2)
 
-    # Get list of cached packages for program
+    '''
+    Get list of cached packages for program
+    '''
     def setPkgList(self, full_list):
         regexp = "^"+re.escape(self.pkg_name)+"-"
         self.pkglist = [f for f in full_list if re.search(regexp, f)]
     
-    # Using Cache Directory, get full names of both current and previous file
+    '''
+    Using Cache Directory, get full names of both current and previous file
+    '''
     def getPackageFiles(self):
         self.pkg_files = ["", ""]
         regexp_new = "^"+self.pkg_name+"-"+self.new_ver
