@@ -30,22 +30,52 @@ def main(stdscr):
     for k in l.alphabetised.keys():
         multiselect_indeces[k] = []
     offset = 0
-
+    instr_h = 7
 
     while True:
-        stdscr.clear()
+        stdscr.erase()
+        
+        # Print Package List
         key = list(l.alphabetised.keys())[current_key]
         pkg_list = l.alphabetised[key]
         num_items = len(pkg_list)
         space_len = len(str(len(pkg_list)))
         for index, pkg in enumerate(pkg_list, 1):
-            if index < (height + offset) and index >= offset:
+            if index < (height + offset - instr_h) and index >= offset:
                 stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(2 if index -1 in multiselect_indeces[key] else 1)) # Gets correctly formatted index
                 stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0)|(curses.A_REVERSE if index-1 in multiselect_indeces[key] else 0))
+        
+        # Print Key Title Screen
         string = f"KEY: {key.upper()}"
         stdscr.move(0, 0)
-        stdscr.clrtoeol()
+        #stdscr.clrtoeol()
         stdscr.addstr(0, int(width/2 - len(string)), string, curses.A_STANDOUT | curses.A_BOLD)
+        
+        # Print Instructions
+        for x in range(0, width):
+            for y in range(0, height):
+                if y == height - instr_h:
+                    if x == 0:
+                        stdscr.insch(y, x, curses.ACS_ULCORNER)
+                    elif x == width - 1:
+                        stdscr.insch(y, x, curses.ACS_URCORNER)
+                    else:
+                        stdscr.insch(y, x, curses.ACS_HLINE)
+                elif y == height - 1:
+                    if x == 0:
+                        stdscr.insch(y, x, curses.ACS_LLCORNER)
+                    elif x == width - 1:
+                        stdscr.insch(y, x, curses.ACS_LRCORNER)
+                    else:
+                        stdscr.insch(y, x, curses.ACS_HLINE)
+                elif y > height - instr_h:
+                    if x == 0:
+                        stdscr.insch(y, x, curses.ACS_VLINE)
+                    elif x == width - 1:
+                        stdscr.insch(y, x, curses.ACS_VLINE)
+
+
+
         c = stdscr.getch()
         if chr(c).lower() == 'q':
             curses.echo()
@@ -72,7 +102,7 @@ def main(stdscr):
             offset = 0
         elif c == curses.KEY_DOWN:
             current_item = (current_item + 1 if current_item + 1 < num_items else num_items - 1)
-            if current_item - offset == height -1 :
+            if current_item - offset == height - 1 - instr_h :
                 offset += 1
         elif c == curses.KEY_UP:
             current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
