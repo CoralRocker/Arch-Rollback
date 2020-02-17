@@ -1,6 +1,5 @@
 from colorama import Fore
 import re
-import configparser
 from pacman import pacman_list
 
 
@@ -11,14 +10,11 @@ def repeatingInput(prompt, default=False):
         if len(out) != 0 or default!=False:
             return (out if len(out) != 0 else default)
 
-# Config file parsing
-config = configparser.ConfigParser()
-config.read("downgrader.conf")
 
-log_file = config["DEFAULT"]["LogFile"] or "/var/log/pacman.log"
-cache_dir = config["DEFAULT"]["CacheDir"] or "/var/cache/pacman/pkg"
-time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
-get_by_upgrade = (True if config["DEFAULT"]["GetByUpgrade"].lower() == "true" else False) | False
+log_file = "/var/log/pacman.log"
+cache_dir = "/var/cache/pacman/pkg"
+time_difference = 15
+get_by_upgrade = False
 
 f = open(log_file, "r")
 

@@ -3,19 +3,16 @@ import datetime
 import time
 from os import listdir
 from os.path import isfile, join
-import configparser
 from colorama import Fore, Back, Style
 import subprocess
 import string
 import requests
 
 
-config = configparser.ConfigParser()
-config.read("downgrader.conf")
 
-log_file = config["DEFAULT"]["LogFile"] or "/var/log/pacman.log"
-cache_dir = config["DEFAULT"]["CacheDir"] or "/var/cache/pacman/pkg"
-time_difference = int(config["DEFAULT"]["AllowableDifference"]) | 15
+log_file = "/var/log/pacman.log"
+cache_dir = "/var/cache/pacman/pkg"
+time_difference = 15
 
 '''
 Wrapper class for pacman_package class. 
