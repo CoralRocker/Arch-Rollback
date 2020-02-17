@@ -1,5 +1,7 @@
-# Arch-Rollback
+# Arch-Rollback - Develop Branch
 The easy way to undo previous upgrades in Arch and other Linux Distributions that use the _pacman_ package manager.
+
+This branch is liable to be unusable at any given moment since it is the branch that is being actively worked on. Stable "releases" will be in the master branch. 
 
 # Dependencies
 
