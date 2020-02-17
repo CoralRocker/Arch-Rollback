@@ -30,7 +30,7 @@ def main(stdscr):
     for k in l.alphabetised.keys():
         multiselect_indeces[k] = []
     offset = 0
-    instr_h = 7
+    instr_h = 8
 
     while True:
         stdscr.erase()
@@ -49,7 +49,7 @@ def main(stdscr):
         string = f"KEY: {key.upper()}"
         stdscr.move(0, 0)
         #stdscr.clrtoeol()
-        stdscr.addstr(0, int(width/2 - len(string)), string, curses.A_STANDOUT | curses.A_BOLD)
+        stdscr.addstr(0, int(width/2 - len(string)/2), string, curses.A_STANDOUT | curses.A_BOLD)
         
         # Print Instructions
         for x in range(0, width):
@@ -73,8 +73,13 @@ def main(stdscr):
                         stdscr.insch(y, x, curses.ACS_VLINE)
                     elif x == width - 1:
                         stdscr.insch(y, x, curses.ACS_VLINE)
-
-
+        
+        stdscr.insstr(height - instr_h + 1, int(width / 2 - 5), 'HOW-TO-USE', curses.A_STANDOUT)
+        stdscr.insstr(height - instr_h + 6, 1, 'Press J to jump to a specific index')
+        stdscr.insstr(height - instr_h + 5, 1, 'Press S to select multiple packages')
+        stdscr.insstr(height - instr_h + 4, 1, 'Press Q to exit program')
+        stdscr.insstr(height - instr_h + 3, 1, 'Press E to confirm selections and exit program')
+        stdscr.insstr(height - instr_h + 2, 1, 'Press space to select a package')
 
         c = stdscr.getch()
         if chr(c).lower() == 'q':
@@ -249,7 +254,7 @@ def SelectPackageVersions(stdscr):
 
     current_item = 0
     offset = 0
-
+    instr_h = 6
 
     while True:
         stdscr.clear()
@@ -258,7 +263,7 @@ def SelectPackageVersions(stdscr):
         space_len = len(str(len(cur_item.full_cache)))
 
         for index, pkg in enumerate(cur_item.full_cache , 1):
-            if index < (height + offset) and index >= offset:
+            if index < (height + offset - instr_h) and index >= offset:
                 stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(2 if index-1 == selected_index[cur_item.pkg_name]  else 1)) # Gets correctly formatted index
                 stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0))
                 if pkg[0] == cur_item.new_ver:
@@ -266,7 +271,38 @@ def SelectPackageVersions(stdscr):
         string = f"KEY: {cur_item.pkg_name} Selected Version: {cur_item.full_cache[selected_index[cur_item.pkg_name]][0] if selected_index[cur_item.pkg_name] != -1 else 'None'}"
         stdscr.move(0, 0)
         stdscr.clrtoeol()
-        stdscr.addstr(0, int(width/2 - len(string)), string, curses.A_STANDOUT | curses.A_BOLD)
+        stdscr.addstr(0, int(width/2 - len(string)/2), string, curses.A_STANDOUT | curses.A_BOLD)
+        
+        # Print Instructions
+        for x in range(0, width):
+            for y in range(0, height):
+                if y == height - instr_h:
+                    if x == 0:
+                        stdscr.insch(y, x, curses.ACS_ULCORNER)
+                    elif x == width - 1:
+                        stdscr.insch(y, x, curses.ACS_URCORNER)
+                    else:
+                        stdscr.insch(y, x, curses.ACS_HLINE)
+                elif y == height - 1:
+                    if x == 0:
+                        stdscr.insch(y, x, curses.ACS_LLCORNER)
+                    elif x == width - 1:
+                        stdscr.insch(y, x, curses.ACS_LRCORNER)
+                    else:
+                        stdscr.insch(y, x, curses.ACS_HLINE)
+                elif y > height - instr_h:
+                    if x == 0:
+                        stdscr.insch(y, x, curses.ACS_VLINE)
+                    elif x == width - 1:
+                        stdscr.insch(y, x, curses.ACS_VLINE)
+        
+        stdscr.insstr(height - instr_h + 1, int(width / 2 - 5), 'HOW-TO-USE', curses.A_STANDOUT)
+        stdscr.insstr(height - instr_h + 4, 1, 'Press Q to exit program')
+        stdscr.insstr(height - instr_h + 3, 1, 'Press E to confirm selections and exit program')
+        stdscr.insstr(height - instr_h + 2, 1, 'Press space to select a package')
+
+
+
         c = stdscr.getch()
         if chr(c).lower() == 'q':
             curses.echo()
@@ -322,6 +358,8 @@ def SelectPackageVersions(stdscr):
             if c == 'y':
                 for pkg in l.selected_packages:
                         pkg.selected_version = selected_version[pkg.pkg_name][1] if selected_version[pkg.pkg_name] != None else None
+                        if pkg.selected_version == None:
+                            l.selected_packages.remove(pkg)
             break            
         stdscr.refresh()
 

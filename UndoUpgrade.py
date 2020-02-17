@@ -79,7 +79,8 @@ if print_if == "y":
     print("EX: 1-23 34, 37-43")
     instr = repeatingInput("Enter requested numbers: ") 
     l.getPackages(instr)
-    
+else:
+    l.selected_packages = l.pkgs
 
 # Print command
 instr = repeatingInput(f"Print command? {Fore.GREEN}(Y/n){Fore.RESET} ", 'y')[0].lower()

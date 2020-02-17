@@ -152,10 +152,11 @@ class pacman_list:
     Runs the actual downgrade operation. 
     '''
     def downgrade(self):
-        for pkg in (self.selected_packages if self.selected else self.pkgs):
+        for pkg in self.selected_packages:
             self.cmd.append(pkg.selected_version)
-        self.cmd = ' '.join(self.cmd)
-        subprocess.call(self.cmd, shell=True)
+        if len(self.cmd) != 0:
+            self.cmd = ' '.join(self.cmd)
+            subprocess.call(self.cmd, shell=True)
 
     '''
     Given a string containing the indexes of the selected packages,
