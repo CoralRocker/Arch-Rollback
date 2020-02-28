@@ -8,7 +8,7 @@ import subprocess
 import string
 import requests
 
-
+prev_cache_file = False
 
 log_file = "/var/log/pacman.log"
 cache_dir = "/var/cache/pacman/pkg"
@@ -288,7 +288,8 @@ class pacman_package:
             self.old_ver = '0'
             self.key = None
         self.select_version = None
-    
+        self.full_cache = []
+
     '''
     Print packages cleanly
     '''

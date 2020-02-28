@@ -1,6 +1,8 @@
 import pacman
 import curses
 import re
+import cache
+
 
 selected_packages = dict()
 l = pacman.pacman_list()
@@ -89,6 +91,7 @@ def main(stdscr):
             stdscr.move(height-1, 0)
             stdscr.clrtoeol()
             stdscr.addstr(height-1, 0, "Press Y to confirm Exit. You WILL LOSE ALL SELECTIONS: ")
+            stdscr.refresh()
             stdscr.refresh()
             c = chr(stdscr.getch()).lower()
             curses.noecho()
@@ -180,16 +183,17 @@ def main(stdscr):
                     stdscr.addstr(height-1, 0, "Enter second number: ")
                     stdscr.refresh()
                     c = stdscr.getstr()
-                    t = 0
+                    test = 0
                     try:
-                         t = int(c)
+                        test = int(c)
                     except:
                         tmp = f"{str(c)} is not a valid number"
                         stdscr.move(height-2, 0)
                         stdscr.clrtoeol()
                         stdscr.addstr(height-2, 0, tmp)
-                    if t:
-                        nums.append(t)
+                     
+                    if test:
+                        nums.append(test)
                         break
             nums.sort()
             for num in range(nums[0], nums[1]+1):
@@ -239,15 +243,88 @@ def SelectPackageVersions(stdscr):
     for k in selected_packages.keys():
         for i in selected_packages[k]:
             count += 1
-    tmp = f"Retrieving {count} packages. This may take up to {count * 5} seconds"
-    stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
-    stdscr.refresh()
-    l.getSelectWebCachedPackages(selected_packages)
+    s_opt = 0 # Selected Option for caching
+    tmp = "Do you wish to use cached packages"
+    op1 = "Use Cached Packages"
+    op2 = "Get New Package Information"
+    op3 = "Get New Package Information and Don't Save Cache"
+    program_cache = cache.cache()
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+        stdscr.addstr(int(height/2)+1, int(width/2 - len(op1)/2), op1, curses.A_STANDOUT if s_opt == 0 else 0)
+        stdscr.addstr(int(height/2)+2, int(width/2 - len(op2)/2), op2, curses.A_STANDOUT if s_opt == 1 else 0)
+        stdscr.addstr(int(height/2)+3, int(width/2 - len(op3)/2), op3, curses.A_STANDOUT if s_opt == 2 else 0)
+        stdscr.refresh()
+        c = stdscr.getch()
+        if c == curses.KEY_UP:
+            s_opt = s_opt-1 if s_opt > 0 else 0
+        elif c == curses.KEY_DOWN:
+            s_opt = s_opt+1 if s_opt < 2 else 2
+        elif chr(c) == ' ':
+            if s_opt == 0:
+                ret = program_cache.loadPackages()
+                if ret is None:
+                    stdscr.clear()
+                    tmp = f"No Cache Found. Retrieving {count} packages. This may take up to {count * 5} seconds"
+                    stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+                    stdscr.refresh()
+                    l.getSelectWebCachedPackages(selected_packages)
+                else:
+                    l.selected_packages = ret
+                break
+            elif s_opt == 1:  
+                stdscr.clear()
+                tmp = f"Retrieving {count} packages. This may take up to {count * 5} seconds"
+                stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+                stdscr.refresh()
+                l.getSelectWebCachedPackages(selected_packages)
+                program_cache.updateCache(l.selected_packages)
+                break
+            elif s_opt == 2:
+                stdscr.clear()
+                tmp = f"Retrieving {count} packages. This may take up to {count * 5} seconds"
+                stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+                stdscr.refresh()
+                l.getSelectWebCachedPackages(selected_packages)
+                break;
+
     
     current_pkg = 0
     max_pkg = len(l.selected_packages)
     selected_version = dict()
     selected_index = dict()
+    for pkg in l.selected_packages:
+        selected_version[pkg.pkg_name] = None
+        selected_index[pkg.pkg_name] = -1
+
+    current_item = 0
+    offset = 0
+    instr_h = 6
+
+    while True:
+        stdscr.clear()
+        cur_item = l.selected_packages[current_pkg]
+        num_items = len(cur_item.full_cache)
+        space_len = len(str(len(cur_item.full_cache)))
+
+        for index, pkg in enumerate(cur_item.full_cache , 1):
+            if index < (height + offset - instr_h) and index >= offset:
+                stdscr.addstr(index - offset, 0, "("+(" "*(space_len-len(str(index))))+str(index)+") ", curses.color_pair(2 if index-1 == selected_index[cur_item.pkg_name]  else 1)) # Gets correctly formatted index
+                stdscr.addstr(str(pkg), (curses.A_REVERSE if current_item == index-1 else 0))
+                if pkg[0] == cur_item.new_ver:
+                    stdscr.addstr(" CURRENTLY INSTALLED", curses.color_pair(2))
+        string = f"KEY: {cur_item.pkg_name} Selected Version: {cur_item.full_cache[selected_index[cur_item.pkg_name]][0] if selected_index[cur_item.pkg_name] != -1 else 'None'}"
+        stdscr.move(0, 0)
+        stdscr.clrtoeol()
+        stdscr.addstr(0, int(width/2 - len(string)/2), string, curses.A_STANDOUT | curses.A_BOLD)
+        '''
+        # Print Instructions
+        for x in range(0, width):
+            for y in range(0, height):
+                if y == height - instr_h:
+        '''            
     for pkg in l.selected_packages:
         selected_version[pkg.pkg_name] = None
         selected_index[pkg.pkg_name] = -1
@@ -335,34 +412,5 @@ def SelectPackageVersions(stdscr):
             current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
             if current_item - offset < 0:
                 offset -= 1
-        
-        elif chr(c) == ' ':
-            if current_item == selected_index[cur_item.pkg_name]:
-                selected_index[cur_item.pkg_name] = -1
-                selected_version[cur_item.pkg_name] = None
-            else:
-                selected_index[cur_item.pkg_name] = current_item
-                selected_version[cur_item.pkg_name] = cur_item.full_cache[current_item]
-        elif chr(c) == 'e':
-            curses.echo()
-            curses.nocbreak()
-            curses.curs_set(1)
-            stdscr.move(height-1, 0)
-            stdscr.clrtoeol()
-            stdscr.addstr(height-1, 0, "Press Y to confirm Exit: ")
-            stdscr.refresh()
-            c = chr(stdscr.getch()).lower()
-            curses.noecho()
-            curses.cbreak()
-            curses.curs_set(0)
-            if c == 'y':
-                for pkg in l.selected_packages:
-                        pkg.selected_version = selected_version[pkg.pkg_name][1] if selected_version[pkg.pkg_name] != None else None
-                        if pkg.selected_version == None:
-                            l.selected_packages.remove(pkg)
-            break            
-        stdscr.refresh()
-
-curses.wrapper(main)
 curses.wrapper(SelectPackageVersions)
 l.downgrade()
