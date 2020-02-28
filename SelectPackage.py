@@ -412,5 +412,6 @@ def SelectPackageVersions(stdscr):
             current_item = (current_item - 1 if current_item - 1 >= 0 else 0)
             if current_item - offset < 0:
                 offset -= 1
+curses.wrapper(main)
 curses.wrapper(SelectPackageVersions)
 l.downgrade()
