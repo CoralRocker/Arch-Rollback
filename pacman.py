@@ -108,6 +108,13 @@ class pacman_list:
         for pkg in self.pkgs:
             print(f"{pkg.pkg_name} upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
     
+    def appendSelected(self, addendum):
+        if type(addendum) == list:
+            for p in addendum:
+                self.selected_packages.append(p)
+        else:
+            self.selected_packages.append(addendum)
+
     '''
     Prints all found packages and their respective files nicely
     '''
@@ -301,7 +308,10 @@ class pacman_package:
     '''
     def __repr__(self):
         return self.__str__()
-    
+   
+    def __eq__(self, other):
+        return self.pkg_name == other.pkg_name
+
     '''
     Returns a pretty version of the date
     '''

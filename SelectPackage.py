@@ -1,6 +1,7 @@
 import pacman
 import curses
 import re
+from cache import cache
 
 selected_packages = dict()
 l = pacman.pacman_list()
@@ -239,11 +240,43 @@ def SelectPackageVersions(stdscr):
     for k in selected_packages.keys():
         for i in selected_packages[k]:
             count += 1
-    tmp = f"Retrieving {count} packages. This may take up to {count * 5} seconds"
-    stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
-    stdscr.refresh()
-    l.getSelectWebCachedPackages(selected_packages)
     
+    paccache = cache()
+    if paccache.exists == False:
+        tmp = f"Retrieving {count} packages. This may take up to {count * 5} seconds"
+        stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+        stdscr.refresh()
+        l.getSelectWebCachedPackages(selected_packages)
+        paccache.updateCache(l.selected_packages)
+    else:
+        pc_l = []
+        pc_d = dict()
+        for k in selected_packages.keys():
+            for f in selected_packages[k]:
+                pc_l.append(f)
+        ret = paccache.getSelectedPackages(pc_l)
+        count = 0
+        if len(ret) != len(pc_l):
+            for pkg in pc_l:
+                if pkg not in ret:
+                    if pkg.pkg_name[0] not in pc_d.keys():
+                        pc_d[pkg.pkg_name[0]] = []
+                        pc_d[pkg.pkg_name[0]].append(pkg)
+                        count += 1
+            tmp = f"Supplementing {count} packages. This may take up to {count * 5} seconds"
+            stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+            stdscr.refresh()
+            l.getSelectWebCachedPackages(pc_d)
+        l.appendSelected(ret)
+        # tmp = f"Retrieved {len(ret)} packages"
+        # stdscr.addstr(int(height/2), int(width/2 - len(tmp)/2), tmp)
+        # stdscr.refresh()
+        # import time
+        # time.sleep(2)
+        paccache.updateCache(l.selected_packages) 
+    
+    paccache.savePackages()
+
     current_pkg = 0
     max_pkg = len(l.selected_packages)
     selected_version = dict()
