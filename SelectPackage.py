@@ -282,6 +282,7 @@ def SelectPackageVersions(stdscr):
     selected_version = dict()
     selected_index = dict()
     for pkg in l.selected_packages:
+        pkg.full_cache.sort(key=lambda x: x[0])
         selected_version[pkg.pkg_name] = None
         selected_index[pkg.pkg_name] = -1
 

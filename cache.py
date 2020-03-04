@@ -15,19 +15,20 @@ class cache:
         self.packages = []
         self.flines = []
         self.loaded = False
+        self.logFile = open(".cache.log", "w")
+        self.debug = debug
         if os.path.exists(self.fname):
             self.exists = True
             if os.path.getsize(self.fname) != 0:
                 self.flines = bz2.decompress(open(self.fname, "rb").read()).decode('utf-8').split('\n')
                 print(len(self.flines))
                 self.loadPackages()            
-        self.logFile = open(".cache.log", "w")
-        self.debug = debug
+        
 
     def updateCache(self, update):
         if type(update) == list:
             if self.debug:
-                self.logFile.write(f"updateCache: Update Size: {len(update)}\n")
+               self.logFile.write(f"updateCache: Update Size: {len(update)}\n")
             for pkg in update:
                 for cur_pkg in self.packages:
                     if cur_pkg.pkg_name == pkg.pkg_name:
@@ -59,6 +60,7 @@ class cache:
     def loadPackages(self):    
         if not self.exists:
             return None
+        self.logFile.write("Load Packages\n")
         lines = self.flines
         num_objects = re.search("(?<=N\_OBJ\:)\d+", lines[0]).group(0)
         curverre =  re.compile("(?<=\{CUR\_VER\s)([\d\w\:\_\-\.]+)(?=\s\})")
@@ -67,7 +69,10 @@ class cache:
         for line in range(1, len(lines)):
             tmp = pacman.pacman_package()
             tmp.pkg_name = namere.search(lines[line]).group(0)
-            tmp.new_ver = curverre.search(lines[line]).group(1)
+            try:
+                tmp.new_ver = curverre.search(lines[line]).group(1)
+            except:
+                self.logFile.write("Error in regex: "+lines[line]+'\n')
             tmp.full_cache = urlre.findall(lines[line])
             self.packages.append(tmp)
         self.loaded = True

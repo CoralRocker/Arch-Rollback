@@ -65,6 +65,8 @@ class pacman_list:
         ''' List containing command. '''
         self.cmd = ['sudo pacman -U']        
 
+        self.cached = False
+
     '''
     Add to list without needing to already have a package created
     '''
@@ -233,14 +235,18 @@ class pacman_list:
     As great as this method is, don't use it.
     Only cache specific packages one at a time for efficiency's sake.
     '''
-    def getWebCachedPackages(self):
+    def getWebCachedPackages(self, debug=False):
         rxp = re.compile("(?<=href=\")([\w\d\-\_]+)(?=\/)")
         for key in self.alphabetised.keys():
+            if debug:
+                print("Getting key "+key)
             url = 'https://archive.archlinux.org/packages/'+key+'/'
             index_list = requests.get(url).content.decode('utf-8').split('\r\n')
             web_packages = [rxp.search(pkg).group(1) for pkg in index_list if rxp.search(pkg)]
             for pkg in self.alphabetised[key]:
                 if pkg.pkg_name in web_packages:
+                    if debug:
+                        print("\tGetting "+pkg.pkg_name)
                     pkg.getWebCache(url+pkg.pkg_name+'/')
 
     '''
@@ -289,11 +295,14 @@ class pacman_package:
             self.line = line
             tmp = regex.search(line).group(0)
             self._date = datetime.datetime.strptime(tmp, "%Y-%m-%dT%X")
-        elif name and ver:
+        if name and ver:
             self.pkg_name = name
             self.new_ver = ver
             self.old_ver = '0'
             self.key = None
+        else:
+            self.new_ver = '0'
+            self.old_ver = '0'
         self.select_version = None
         self.full_cache = []
 
