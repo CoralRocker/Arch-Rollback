@@ -15,6 +15,13 @@ Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
 
 # [pacman.py](pacman.py)
 
+### pacman_list class
 | Method Name | Parameters | What It Does |
 |: --- :| --- | --- |
+| \_\_init__ | | Sets up the list to be ready to store package information |
+| cadd | line | Given _line_ from the pacman log file, will create a new package with the information and add it to the package list
+| sort | | Sorts complete list of packages to contain only packages updated within 30 minutes of each other
+| updatePackages| | Calls on all sorted packages to update their information
+| printPackages | | Prints packages to terminal in a pretty way. Tells when it was last updated and what versions were affected.
+| appendSelected | addendum | Adds _addendum_ to list of selected packages. _Addendum_ may be a list or a single package
 |
