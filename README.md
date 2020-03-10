@@ -17,7 +17,7 @@ Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
 
 ### pacman_list class
 | Method Name | Parameters | What It Does |
-|:---:|---|---|
+|:---:|:---:|---|
 | \_\_init__ |  | Sets up the list to be ready to store package information |
 | cadd | line | Given _line_ from the pacman log file, will create a new package with the information and add it to the package list
 | sort |  | Sorts complete list of packages to contain only packages updated within 30 minutes of each other
@@ -35,7 +35,7 @@ Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
 
 ### pacman_package class
 | Method Name | Parameters | What It Does |
-|:---:|---|---|
+|:---:|:---:|---|
 | \_\_init__ | line=False, regex=False, name=False, ver=False | if given a line and regex, gets the package's update date. If given name and ver, uses it to update the package's name and current version. 
 | \_\_str__ |  | prints the package cleanly
 | \_\_repr__ |  | Does the same as \_\_str__
