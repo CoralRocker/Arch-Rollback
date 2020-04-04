@@ -133,7 +133,7 @@ class pacman_list:
             for pkg in self.pkgs:
                 # print(f"{pkg.pkg_name} {pkg.pkg_files}")
                 space = ' ' * (max_len - len(pkg.pkg_name))
-                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET + space}", end='')
+                print(f"{Fore.CYAN + pkg.pkg_name + Fore.RESET + space}")
                 print(f"upgraded on {Fore.YELLOW}{pkg._date}{Fore.RESET} from {Fore.RED}{pkg.old_ver}{Fore.RESET} to {Fore.GREEN}{pkg.new_ver}{Fore.RESET}")
         # Print with numbering beforehand
         else:
@@ -148,7 +148,7 @@ class pacman_list:
     Prints out full command to run, perhaps with sudo
     '''
     def printCommand(self, sudo=False):
-        print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET, end='')
+        print(Fore.GREEN + "Copy and paste this into the command line: " + Fore.RESET)
         command = ("sudo " if sudo else "") + "pacman -U"
         for pkg in (self.selected_packages if self.selected else self.pkgs):
             command += " " + pkg.pkg_files[0]
