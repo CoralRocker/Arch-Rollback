@@ -30,7 +30,7 @@ Run `git clone https://github.com/CoralRocker/Arch-Rollback.git`. That's it!
 | printSelected | selected=False | Prints packages and their previous and new versions if selected is False. If selected is True, prints the packages' selected versions.
 | getCachePackages |  | Retrieves a list of all installed packages and creates pacman_package objects for all of them.
 | sortCachePackages |  | Sorts the found packages alphabetically in a dictionary by their first initial.
-| getWebCachedPackages | debug=False | Gets all available web packages for each installed package. Debug prints some debugging information for each package. DON'T USE THIS
+| getWebCachedPackages | debug=False | Gets all available web packages for each installed package. Debug prints some debugging information for each package. ***DON'T USE THIS***
 | getSelectWebCachedPackages | alpha_dict | Given a dict sorted by the first initial of packages (alpha_dict), gets web cache for the packages. Does the same thing as getWebCachedPackages, except only for selected packages.
 
 ### pacman_package class
