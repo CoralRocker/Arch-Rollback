@@ -76,6 +76,7 @@ if print_if == "y":
     instr = repeatingInput("Enter requested numbers: ") 
     l.getPackages(instr)
 else:
+    print(f"{len(l.pkgs)}")
     l.selected_packages = l.pkgs
 
 # Print command
